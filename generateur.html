@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+</head>
+<body style="font-family: sans-serif;">
+  <textarea id="code" style="position: fixed; right: 0; top: 0; font-family: monospace; width: 300px; height: 80px; resize: vertical;"></textarea>
+  <div style="position: fixed; left: 0; top: 0; background-color: white; padding: 10px;">
+    <div><button onclick="document.getElementById('réglages').style.display = 'block'">Changer la taille</button></div>
+    <div style="margin-top: 20px"><button onclick="if(confirm('Êtes-vous certain de tout effacer ?')) { tableau = []; actualiser(); }">Tout effacer</button></div>
+  </div>
+  <div id="réglages" style="position: fixed; left: 0; top: 0; background-color: white; padding: 10px; display: none;">
+    <div>Largeur :</div>
+    <div><input id="largeur" type="range" min="10" max="100" oninput="actualiser()"> <span id="largeur_valeur">0</span> lignes</div>
+    <div>Hauteur :</div>
+    <div><input id="hauteur" type="range" min="10" max="100" oninput="actualiser()"> <span id="hauteur_valeur">0</span> lignes</div>
+    <div style="margin-top: 15px"><button onclick="document.getElementById('réglages').style.display = 'none'">OK</button></div>
+  </div>
+  <canvas id="grille" style="margin-top: 150px;" onclick="toggle_path(event)"></div>
+  <script>
+    const taille_case = 30;
+    const taille_bordure = 4;
+    const marge = 5;
+    let tableau = [];
+    const largeur_elt = document.getElementById("largeur");
+    const hauteur_elt = document.getElementById("hauteur");
+    const grille_elt = document.getElementById("grille");
+
+    try {
+      tableau = JSON.parse(localStorage.getItem("tableau")) ?? [];
+    } catch(e) { console.error(e); }
+
+    // initialiser les curseurs avec les valeurs du tableau
+    largeur_elt.value = tableau[0] ?? 10;
+    hauteur_elt.value = tableau[1] ?? 10;
+
+    function actualiser () {
+      const largeur = parseInt(largeur_elt.value);
+      const hauteur = parseInt(hauteur_elt.value);
+
+      // mettre à jour le tableau
+      tableau[0] = largeur;
+      tableau[1] = hauteur;
+      tableau.length = 2 + largeur*(hauteur-1) + (largeur-1)*hauteur;
+
+      // afficher largeur et hauteur
+      document.getElementById("largeur_valeur").innerText = largeur;
+      document.getElementById("hauteur_valeur").innerText = hauteur;
+
+      // afficher le tableau dans le textarea
+      document.getElementById("code").innerText = JSON.stringify(tableau);
+
+      // enregistrer le tableau dans localStorage
+      localStorage.setItem("tableau", JSON.stringify(tableau));
+
+      // générer la grille
+      const ctx = grille_elt.getContext("2d");
+      grille_elt.width = (taille_case + taille_bordure)*largeur + taille_bordure + 2*marge;
+      grille_elt.height = (taille_case + taille_bordure)*hauteur + taille_bordure + 2*marge;
+      ctx.clearRect(0, 0, grille_elt.width, grille_elt.height);
+      ctx.strokeStyle = "black";
+      ctx.textBaseline = "middle";
+      ctx.textAlign = "center";
+      ctx.font = "12px sans-serif"
+      ctx.lineWidth = taille_bordure;
+      for(let i = 0; i < largeur; i++) {
+        for(let j = 0; j < hauteur; j++) {
+          let x = i*taille_case+taille_bordure + marge;
+          let y = j*taille_case+taille_bordure + marge;
+          // barre horizontale
+          if(i < largeur - 1) {
+            const a = 2 + (largeur*2 - 1) * j + i;
+            if(!tableau[a]) {
+              ctx.beginPath();
+              ctx.moveTo(x, y);
+              ctx.lineTo(x + taille_case, y);
+              ctx.stroke();
+              //ctx.fillStyle = "red";
+              //ctx.fillText(a, x + taille_case/2, y);
+            }
+          }
+          // barre verticale
+          if(j < hauteur - 1) {
+            const b = 1 + (largeur*2 - 1) * j + i + largeur;
+            if(!tableau[b]) {
+              ctx.beginPath();
+              ctx.moveTo(x, y);
+              ctx.lineTo(x, y + taille_case);
+              ctx.stroke();
+              //ctx.fillStyle = "blue";
+              //ctx.fillText(b, x, y + taille_case/2);
+            }
+          }
+        }
+      }
+    }
+    actualiser();
+
+    function toggle_path (e) {
+      const x = e.offsetX - marge - taille_bordure/2;
+      const y = e.offsetY - marge - taille_bordure/2;
+      if(x && y) {
+        const ligne_x = (x - taille_bordure/2)/taille_case;
+        const ligne_y = (y - taille_bordure/2)/taille_case;
+        const i = Math.floor(ligne_x);
+        const j = Math.floor(ligne_y);
+        const mod_x = ligne_x % 1;
+        const mod_y = ligne_y % 1;
+        const bordure_inf = taille_bordure/taille_case;
+        const bordure_sup = 1 - taille_bordure/taille_case;
+        const largeur = tableau[0];
+        const hauteur = tableau[1];
+        let a = false;
+        if(mod_x < bordure_inf) { a = 1 + (largeur*2 - 1) * j + i + largeur; console.log("a"); }
+        else if(mod_x > bordure_sup) { a = 1 + (largeur*2 - 1) * j + i + largeur + 1; console.log("b"); }
+        else if(mod_y < bordure_inf) { a = 2 + (largeur*2 - 1) * j + i; console.log("c"); }
+        else if(mod_y > bordure_sup) { a = 2 + (largeur*2 - 1) * (j + 1) + i; console.log("d"); }
+        if(a) {
+          console.log(i, j, a);
+          tableau[a] = tableau[a] ? null : true;
+          actualiser();
+        }
+      }
+    }
+  </script>
+</body>
+</html>
