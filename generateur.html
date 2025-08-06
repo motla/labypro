@@ -113,6 +113,8 @@
       const x = e.offsetX - marge - taille_bordure/2;
       const y = e.offsetY - marge - taille_bordure/2;
       if(x && y) {
+        const largeur = tableau[0];
+        const hauteur = tableau[1];
         const ligne_x = (x - taille_bordure/2)/taille_case;
         const ligne_y = (y - taille_bordure/2)/taille_case;
         const i = Math.floor(ligne_x);
@@ -122,8 +124,6 @@
         const mod_y = ligne_y % 1;
         const bordure_inf = taille_bordure/taille_case;
         const bordure_sup = 1 - taille_bordure/taille_case;
-        const largeur = tableau[0];
-        const hauteur = tableau[1];
         let a = false;
         if(mod_x < bordure_inf) { a = 1 + (largeur*2 - 1) * j + i + largeur; console.log("a"); }
         else if(mod_x > bordure_sup) { a = 1 + (largeur*2 - 1) * j + i + largeur + 1; console.log("b"); }
