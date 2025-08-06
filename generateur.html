@@ -117,7 +117,7 @@
         const ligne_y = (y - taille_bordure/2)/taille_case;
         const i = Math.floor(ligne_x);
         const j = Math.floor(ligne_y);
-        if(i > largeur || j > hauteur) return;
+        if(i < 0 || y < 0 || i > largeur-1 || j > hauteur-1) return;
         const mod_x = ligne_x % 1;
         const mod_y = ligne_y % 1;
         const bordure_inf = taille_bordure/taille_case;
