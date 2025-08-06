@@ -68,8 +68,8 @@
 
       // générer la grille
       const ctx = grille_elt.getContext("2d");
-      grille_elt.width = (taille_case + taille_bordure)*largeur + taille_bordure + 2*marge;
-      grille_elt.height = (taille_case + taille_bordure)*hauteur + taille_bordure + 2*marge;
+      grille_elt.width = taille_case * (largeur - 1) + 2*marge;
+      grille_elt.height = taille_case * (hauteur - 1) + 2*marge;
       ctx.clearRect(0, 0, grille_elt.width, grille_elt.height);
       ctx.strokeStyle = "black";
       ctx.textBaseline = "middle";
@@ -78,8 +78,8 @@
       ctx.lineWidth = taille_bordure;
       for(let i = 0; i < largeur; i++) {
         for(let j = 0; j < hauteur; j++) {
-          let x = i*taille_case+taille_bordure + marge;
-          let y = j*taille_case+taille_bordure + marge;
+          let x = i*taille_case + marge;
+          let y = j*taille_case + marge;
           // barre horizontale
           if(i < largeur - 1) {
             const a = 2 + (largeur*2 - 1) * j + i;
@@ -110,13 +110,13 @@
     actualiser();
 
     function toggle_path (e) {
-      const x = e.offsetX - marge - taille_bordure/2;
-      const y = e.offsetY - marge - taille_bordure/2;
+      const x = e.offsetX - marge;
+      const y = e.offsetY - marge;
       if(x && y) {
         const largeur = tableau[0];
         const hauteur = tableau[1];
-        const ligne_x = (x - taille_bordure/2)/taille_case;
-        const ligne_y = (y - taille_bordure/2)/taille_case;
+        const ligne_x = x/taille_case;
+        const ligne_y = y/taille_case;
         const i = Math.floor(ligne_x);
         const j = Math.floor(ligne_y);
         if(i < 0 || j < 0 || i > largeur-1 || j > hauteur-1) return;
