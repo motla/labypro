@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>LabyPro</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Dancing+Script:wght@400..700&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        touch-action: manipulation;
+        height: 100%;
+      }
+      body {
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-color: black;
+        background-size: cover;
+        min-height: 100vh;
+        overflow: hidden;
+        font-family: 'Bebas Neue';
+        font-size: 30px;
+        color: white;
+      }
+      .page {
+        display: none; 
+        position: fixed;
+        left: 0; top: 0;
+        width: 100%; height: 100%;
+        align-content: center;
+        text-align: center;
+        box-sizing: border-box;
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-color: black;
+        background-size: cover;
+        overflow: hidden;
+      }
+      @keyframes progression {
+        0% { width: 0%; }
+        100% { width: 100%; }
+      }
+    </style>
+  </head>
+  <body>
+
+    <div id="masque_noir" class="page" style="display: block; pointer-events: none; opacity: 1; transition: opacity 0.2s linear; z-index: 999; font-size: 100px"></div>
+    
+    <div id="page_chargement" class="page" style="background-image: url('images/background.gif');">
+      <div style="font-family: 'Dancing Script'; color: rgb(208, 155, 244); font-size: 70px;">LabyPro</div>
+      <div style="display: flex; flex-direction:column; align-items: center; position: fixed; width: 100%; margin-top: 160px; color: rgb(255, 193, 48); text-align: center;">
+        <div>Chargement...</div>
+        <div style="height: 20px; width: 230px; border: 2px solid rgb(255, 193, 48); margin-top: 10px; padding: 3px;">
+          <div style="animation: progression linear 2s; background-color: rgb(255, 193, 48); height: 100%;"></div>
+        </div>
+      </div>
+      <img src="images/dave.png" style="height: 480px;">
+      <div style="color: rgb(255, 193, 48); font-size: 30px; text-shadow: 0 0 10px black;">Par Rob#1 et Motla</div>
+    </div>
+
+    <div id="page_menu" class="page" style="padding: 10px; background-image: url(images/labi3d.gif);">
+      <div style="position: fixed; text-align: left;">
+        <div><span style="background: white; padding: 0 10px; font-size: 20px;">Pseudo&nbsp;:</span></div>
+        <div><span id="menu_pseudo" onclick="choisir_pseudo()" style="background: white; padding: 0 10px; font-size: 34px;"></span></div>
+      </div>
+      <div style="text-align: right; font-family: 'Dancing Script'; color: rgb(208, 155, 244); font-size: 70px; margin-bottom: 50px"><span style="background: white; padding: 0 10px;">LabyPro</span></div>
+      <img src="images/dave.png" style="position: fixed; left: -20px; margin-top: 80px; height: 320px;">
+      <div style="text-align: right; font-size: 50px;">
+        <div style="color:rgb(255, 0, 234); margin-bottom: 50px;"><span style="background: white; padding: 0 10px;" onclick="charger_le_jeu(1)">Jouer niveau 1</span></div>
+        <div style="color:rgb(255, 0, 0); margin-bottom: 50px;"><span style="background: white; padding: 0 10px;">Personnages</span></div>
+        <div style="color:rgb(198, 154, 9); margin-bottom: 50px"><span style="background: white; padding: 0 10px;">Carrière</span></div>
+        <div style="color:rgb(94, 198, 164); margin-bottom: 50px;"><span style="background: white; padding: 0 10px;">Boutique</span></div>
+      </div>
+    </div>
+
+    <div id="page_jeu" class="page">
+      <canvas id="grid" style="position: fixed; top: 0; left: 50%; margin-left: -17px; transform: translate(0, 0);"></canvas>
+      <div id="sprite" style="position: fixed; top: 100px; left: 50%; margin-left: -17px; width: 35px; height: 35px; background-image: url(images/sprites/dave.png); background-size: cover; background-repeat: no-repeat;"></div>
+      <svg id="joystick" width="150" height="150" style="position: fixed; right: 10px; bottom: 10px">
+        <circle cx="50%" cy="50%" r="50" stroke="rgba(127,127,127,0.95)" stroke-width="40" fill="none"></circle>
+        <polygon points="75,15 60,40 90,40" fill="rgba(255,255,255,0.8)" />
+        <polygon points="75,135 60,110 90,110" fill="rgba(255,255,255,0.8)" />
+        <polygon points="15,75 40,60 40,90" fill="rgba(255,255,255,0.8)" />
+        <polygon points="135,75 110,60 110,90" fill="rgba(255,255,255,0.8)" />
+      </svg>
+    </div>
+
+    <script>
+      const masque_noir = document.getElementById("masque_noir");
+      const sprite = document.getElementById("sprite");
+      const grid = document.getElementById("grid");
+      const joystick = document.getElementById("joystick");
+
+
+      // =========== Général ============
+      const pages = {
+        chargement: document.getElementById("page_chargement"),
+        menu: document.getElementById("page_menu"),
+        jeu: document.getElementById("page_jeu")
+      }
+
+      function afficher_la_page (page) {
+        for(const page_name in pages) pages[page_name].style.display = "none";
+        pages[page].style.display = "block";
+      }
+
+      function actualiser_pseudo () {
+        const pseudo = localStorage.getItem("pseudo") ?? "Choisir";
+        document.getElementById("menu_pseudo").innerText = pseudo;
+      }
+
+      function choisir_pseudo () {
+        localStorage.setItem("pseudo", prompt("Choisir un pseudo", "pseudo:") || "Choisir");
+        actualiser_pseudo();
+      }
+
+      // Code qui s'exécute au démarrage
+      actualiser_pseudo();
+      afficher_la_page("chargement");
+      setTimeout(() => masque_noir.style.opacity = 0, 10);
+      setTimeout(() => masque_noir.style.opacity = 1, 2000);
+      setTimeout(() => afficher_la_page("menu"), 2200);
+      setTimeout(() => masque_noir.style.opacity = 0, 2200);
+
+      // =========== Gestion du jeu ============
+      const niveaux = [
+        { // niveau 1
+          name: "Niveau 1",
+          labyrinthe: [20,20,null,null,null,null,null,null,null,null,null,true,null,null,null,null,null,null,null,null,null,null,true,null,true,true,null,true,null,true,null,null,true,true,true,true,true,true,true,true,null,null,true,true,true,true,true,true,true,true,true,null,true,null,null,null,true,null,null,null,null,true,null,null,null,true,null,null,null,true,true,true,true,true,true,true,true,true,true,null,true,null,true,null,null,null,null,true,null,true,null,true,null,null,true,null,true,null,true,null,true,true,true,null,true,true,true,null,true,null,true,null,true,null,null,true,null,null,null,null,null,null,true,null,true,null,null,null,null,null,null,true,null,true,true,true,true,true,null,true,true,true,true,true,null,null,true,null,true,true,true,true,null,null,null,null,null,null,true,null,null,null,null,true,true,true,true,true,null,null,null,null,true,null,true,true,true,null,true,true,true,true,true,true,null,null,null,null,true,true,true,true,true,true,null,null,null,null,null,null,null,true,true,true,true,true,true,null,true,null,null,true,null,true,true,true,null,true,true,true,true,true,null,null,null,true,null,true,true,true,true,null,true,null,null,null,true,null,null,null,null,null,null,true,null,null,null,true,null,null,null,null,true,true,true,null,true,true,true,true,true,true,true,true,true,true,null,null,true,true,true,null,null,null,null,null,null,null,null,null,null,null,null,null,null,true,true,true,null,null,true,true,true,true,null,true,true,true,true,true,true,true,true,true,true,null,null,null,true,null,null,null,null,null,true,null,null,null,null,null,null,null,null,null,null,true,true,true,null,true,true,true,true,null,null,true,null,true,null,true,true,true,true,true,true,null,null,true,true,null,null,null,null,true,true,null,true,true,true,null,null,null,null,null,true,true,null,null,null,true,true,null,null,true,true,true,null,null,null,true,true,true,true,null,null,true,true,true,true,true,null,null,null,null,null,true,null,true,true,null,null,null,true,true,null,null,null,null,null,null,true,null,true,true,true,true,null,null,null,true,true,true,null,null,true,true,null,true,null,true,null,null,true,null,true,null,true,true,null,null,null,true,true,null,true,true,true,true,true,true,null,true,true,true,true,null,null,null,true,true,true,true,true,true,null,true,null,true,null,null,true,null,null,null,null,true,null,null,null,null,null,true,null,null,null,null,null,null,null,null,null,null,null,true,null,null,true,true,true,true,null,null,null,true,true,null,null,null,null,true,true,true,true,null,true,null,null,true,null,true,null,true,true,null,true,true,true,true,null,null,null,true,true,null,null,true,null,null,null,true,null,true,true,null,true,null,null,null,true,true,true,null,null,true,true,null,true,true,null,true,true,null,null,null,null,true,true,null,null,null,null,true,null,null,true,true,null,true,null,true,true,true,true,null,true,true,null,true,true,true,true,true,true,true,null,true,true,true,null,null,null,null,null,null,null,true,null,null,null,null,null,null,null,null,null,true,null,null,true,null,null,true,true,null,true,null,true,null,true,true,true,true,true,true,true,null,true,true,true,true,null,null,null,null,true,null,null,null,true,null,null,null,null,null,null,true,null,null,null,true,true,true,true,null,null,true,true,null,null,true,true,true,true,true,true,null,null,true,true,null,null,null,true,true,null,null,true,true,null,null,null,true,null,null,true,true,true,true,null,true,true,true,null,null,true,null,true,true,true,true,null,null,null,null,null,null,null,null,null,null,null,null,true,null,true,null,null,true,null,true,true,true,true,true,true,true,true,true,true,true,true,true,null,null,null,null,null,null,null,null,null,null,null,true,null,null,null,null,null,null,null,null],
+          couleur_des_murs: "",
+          image_de_fond: ""
+        }
+      ];
+      let labyrinthe_en_cours = niveaux[0].labyrinthe;
+      const grid_pos = [0, 0];
+      const grid_size = 30;
+      const border_size = 4;
+      const margin = 5;
+
+      function charger_le_jeu (niveau) {
+        // vérifier que le niveau existe
+        const ce_niveau = niveaux[niveau-1];
+        if(!ce_niveau) {
+          alert("Ce niveau n'existe pas !");
+          return;
+        }
+
+        // dessiner le labyrinthe
+        labyrinthe_en_cours = ce_niveau.labyrinthe;
+        dessiner_le_labyrinthe(ce_niveau.couleur_des_murs);
+
+        // initialiser la position du joueur à l'entrée du labyrinthe
+        const entrée = ce_niveau.labyrinthe.findIndex(mur => mur === true); // trouver le premier mur ouvert
+        grid_pos[0] = -(entrée - 2) * grid_size - margin + border_size/2;
+        grid_pos[1] = 100;
+        
+        // animation de démarrage (ready?, 3, 2, 1)
+        masque_noir.style.opacity = 1;
+        masque_noir.innerText = "Ready ?";
+        setTimeout(() => afficher_la_page("jeu"), 1000);
+        setTimeout(() => masque_noir.innerText = "3", 1000);
+        setTimeout(() => masque_noir.innerText = "2", 2000);
+        setTimeout(() => masque_noir.innerText = "1", 3000);
+        
+        // animation vers la page jeu
+        setTimeout(() => masque_noir.style.opacity = 0, 4000);
+        setTimeout(() => masque_noir.innerText = "", 4200);
+
+      }
+      
+
+      function dessiner_le_labyrinthe (couleur_des_murs) {
+        const largeur = labyrinthe_en_cours[0];
+        const hauteur = labyrinthe_en_cours[1];
+        const ctx = grid.getContext("2d");
+        grid.width = grid_size*(largeur-1) + 2*margin;
+        grid.height = grid_size*(hauteur-1) + 2*margin;
+        ctx.clearRect(0, 0, grid.width, grid.height);
+        ctx.strokeStyle = couleur_des_murs || "white";
+        ctx.lineWidth = border_size;
+        for(let i = 0; i < largeur; i++) {
+          for(let j = 0; j < hauteur; j++) {
+            let x = i*grid_size + margin;
+            let y = j*grid_size + margin;
+            // barre horizontale
+            if(i < largeur - 1) {
+              const a = 2 + (largeur*2 - 1) * j + i;
+              if(!labyrinthe_en_cours[a]) {
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x + grid_size, y);
+                ctx.stroke();
+              }
+            }
+            // barre verticale
+            if(j < hauteur - 1) {
+              const b = 1 + (largeur*2 - 1) * j + i + largeur;
+              if(!labyrinthe_en_cours[b]) {
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x, y + grid_size);
+                ctx.stroke();
+              }
+            }
+          }
+        }
+      }
+
+      // ====== Moteur de jeu (animation du sprite + déplacement du labyrinthe) ======
+      let currentSpriteFrame = 0;
+      let currentDirection = "idle";
+      let wantedDirection = "idle";
+      const sprite_offsetX = {
+        idle: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 35],
+        left: [70, 70, 105, 105],
+        right: [140, 140, 175, 175],
+        up: [210, 210, 245, 245],
+        down: [280, 280, 315, 315]
+      };
+
+      function updateSprite() {
+        currentSpriteFrame = (currentSpriteFrame + 1) % sprite_offsetX[currentDirection].length;
+        const x = sprite_offsetX[currentDirection][currentSpriteFrame];
+        sprite.style.backgroundPosition = `-${x}px 0`;
+      }
+      setInterval(updateSprite, 70);
+
+      function updateGridPosition() {
+        const x_pos = (grid_size/2-(grid_pos[0]+margin-border_size/2));
+        const y_pos = (100+grid_size-(grid_pos[1]+margin-border_size/2));
+        const i = Math.floor(x_pos/grid_size);
+        const j = Math.floor(y_pos/grid_size);
+        const largeur = labyrinthe_en_cours[0];
+        const a = 2 + (largeur*2 - 1) * j + i;
+        const b = 1 + (largeur*2 - 1) * j + i + largeur;
+        const c = 2 + (largeur*2 - 1) * (j + 1) + i;
+        const d = 1 + (largeur*2 - 1) * j + (i + 1) + largeur;
+        if(wantedDirection == "left") {
+          if(-grid_pos[0] > margin) { // interdire de sortir du labyrinthe par la gauche
+            if((x_pos % grid_size) > 10 || labyrinthe_en_cours[b]) { // interdire de franchir le mur de gauche
+              currentDirection = "left";
+              grid_pos[0] += 2;
+            }
+          } else currentDirection = "idle";
+        }
+        else if(wantedDirection == "right") {
+          if(-grid_pos[0] < (largeur - 2)*grid_size + margin) { // interdire de sortir du labyrinthe par la droite
+            if((x_pos % grid_size) < (grid_size - 10) || labyrinthe_en_cours[d]) { // interdire de franchir le mur de droite
+              currentDirection = "right";
+              grid_pos[0] -= 2;
+            }
+          } else currentDirection = "idle";
+        }
+        else if(wantedDirection == "up") {
+          if(grid_pos[1] < 110) { // interdire de sortir du labyrinthe par le haut
+            if((y_pos % grid_size) > 10 || labyrinthe_en_cours[a]) { // interdire de franchir le mur du haut
+              currentDirection = "up";
+              grid_pos[1] += 2;
+            }
+          } else currentDirection = "idle";
+        }
+        else if(wantedDirection == "down") {
+          if((y_pos % grid_size) < (grid_size - 5) || labyrinthe_en_cours[c]) { // interdire de franchir le mur du bas
+            currentDirection = "down";
+            grid_pos[1] -= 2;
+          }
+        }
+        else currentDirection = "idle";
+        grid.style.transform = "translate(" + grid_pos[0] + "px, " + grid_pos[1] + "px)";
+      }
+      setInterval(updateGridPosition, 20);
+
+      // Key handling
+      document.addEventListener("keydown", (e) => {
+        if (e.repeat) return;
+        if (e.key === "ArrowLeft") wantedDirection = "left";
+        else if (e.key === "ArrowRight") wantedDirection = "right";
+        else if (e.key === "ArrowUp") wantedDirection = "up";
+        else if (e.key === "ArrowDown") wantedDirection = "down";
+      });
+      document.addEventListener("keyup", (e) => { wantedDirection = "idle"; });
+
+      // Joystick handling
+      function joystick_handler(e) {
+        let x, y;
+        const rect = joystick.getBoundingClientRect();
+        if (e.touches && e.touches.length > 0) {
+          x = e.touches[0].clientX - rect.left;
+          y = e.touches[0].clientY - rect.top;
+        } else {
+          x = e.offsetX;
+          y = e.offsetY;
+        }
+        const width = joystick.width.baseVal.value;
+        const is_diag_top_left = x < y;
+        const is_diag_top_right = (width - x) < y;
+        if (is_diag_top_left) {
+          if (is_diag_top_right) wantedDirection = "down";
+          else wantedDirection = "left";
+        } else {
+          if (is_diag_top_right) wantedDirection = "right";
+          else wantedDirection = "up";
+        }
+      }
+      joystick.addEventListener("touchstart", joystick_handler);
+      joystick.addEventListener("touchmove", joystick_handler);
+      joystick.addEventListener("mousedown", joystick_handler); // Optional: support mouse too
+      document.addEventListener("mouseup", (e) => { wantedDirection = "idle"; });
+    </script>
+
+  </body>
+</html>
+
+
