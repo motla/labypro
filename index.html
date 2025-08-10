@@ -367,10 +367,10 @@
       // au démarrage :
       function charger_les_images_et_musiques () {
         const images = [];
-        const musiques = ["sounds/succes.mp3", "sounds/echec.mp3", "sounds/musics/menu.mp3"];
+        const musiques = [];//"sounds/succes.mp3", "sounds/echec.mp3", "sounds/musics/menu.mp3"];
         for(const niveau of niveaux) {
           if(niveau?.image_de_fond) images.push("images/backgrounds/"+niveau.image_de_fond);
-          if(niveau?.musique) musiques.push("sounds/musics/"+niveau.musique);
+          //if(niveau?.musique) musiques.push("sounds/musics/"+niveau.musique);
         }
         let progression = 0;
         const total = images.length + musiques.length;
