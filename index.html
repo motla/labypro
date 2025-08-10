@@ -377,7 +377,7 @@
         const loaded_handler = function () {
           progression++;
           console.log("loading "+progression+"/"+total);
-          document.getElementById("progressbar").width = Math.round(progression / total * 100)+"%";
+          document.getElementById("progressbar").style.width = Math.round(progression / total * 100)+"%";
           if(progression == total) {
             document.getElementById("chargement").style.display = "none";
             document.getElementById("bouton_demarrer").style.display = "block";
