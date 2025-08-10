@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
   <head>
     <title>LabyPro</title>
     <meta charset="utf-8">
+    <meta name="description" content="Jeu de labyrinthe"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -13,18 +14,26 @@
         height: 100%;
       }
       body {
-        background-repeat: no-repeat;
-        background-position: center center;
-        background-color: black;
-        background-size: cover;
-        min-height: 100vh;
-        overflow: hidden;
         font-family: 'Bebas Neue';
         font-size: 30px;
         color: white;
+        background-color: black;
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-size: cover;
+        min-height: 100vh;
+        overflow: hidden;
+        cursor: default;
+      }
+      button {
+        font-family: inherit;
+        font-size: 50px;
+        color: rgb(255, 193, 48);
+        border: solid 3px rgb(255, 193, 48);
+        padding: 2px 10px;
+        background-color: rgba(0, 0, 0, 0.8);
       }
       .page {
-        display: none; 
         position: fixed;
         left: 0; top: 0;
         width: 100%; height: 100%;
@@ -36,78 +45,239 @@
         background-color: black;
         background-size: cover;
         overflow: hidden;
+        transition: opacity 0.2s linear;
+        opacity: 0;
       }
-      @keyframes progression {
-        0% { width: 0%; }
-        100% { width: 100%; }
+      .page.show {
+        opacity: 1;
+        z-index: 10;
       }
     </style>
   </head>
   <body>
 
-    <div id="masque_noir" class="page" style="display: block; pointer-events: none; opacity: 1; transition: opacity 0.2s linear; z-index: 999; font-size: 100px"></div>
-    
-    <div id="page_chargement" class="page" style="background-image: url('images/background.gif');">
-      <div style="font-family: 'Dancing Script'; color: rgb(208, 155, 244); font-size: 70px;">LabyPro</div>
-      <div style="display: flex; flex-direction:column; align-items: center; position: fixed; width: 100%; margin-top: 160px; color: rgb(255, 193, 48); text-align: center;">
+    <div id="page_chargement" class="page" style="background-image: url('images/backgrounds/fond1.gif')">
+      <div style="font-family: 'Dancing Script'; color: rgb(208, 155, 244); font-size: 70px">LabyPro</div>
+      <div id="chargement" style="display: flex; flex-direction:column; align-items: center; position: fixed; width: 100%; left: 0; top: 300px; color: rgb(255, 193, 48); text-align: center">
         <div>Chargement...</div>
-        <div style="height: 20px; width: 230px; border: 2px solid rgb(255, 193, 48); margin-top: 10px; padding: 3px;">
-          <div style="animation: progression linear 2s; background-color: rgb(255, 193, 48); height: 100%;"></div>
+        <div style="height: 20px; width: 230px; border: 2px solid rgb(255, 193, 48); margin-top: 10px; padding: 3px">
+          <div id="progressbar" style="background-color: rgb(255, 193, 48); height: 100%; width: 0; transition: width 0.2s ease-out"></div>
         </div>
       </div>
-      <img src="images/dave.png" style="height: 480px;">
-      <div style="color: rgb(255, 193, 48); font-size: 30px; text-shadow: 0 0 10px black;">Par Rob#1 et Motla</div>
+      <button id="bouton_demarrer" onclick="afficher_la_page('menu')" style="display: none; position: fixed; left: 50%; top: 335px; transform: translateX(-50%)">Démarrer</button>
+      <img src="images/persos/dave.png" height="480">
+      <div style="color: rgb(255, 193, 48); font-size: 30px; text-shadow: 0 0 10px black">Par Rob#1 et Motla</div>
+    </div>
+    
+    <div id="page_menu" class="page" style="padding: 10px; background-image: url(images/backgrounds/labi3d.gif); color: black">
+      <div style="position: fixed; text-align: left">
+        <div><span style="background: white; padding: 0 10px; font-size: 20px">Pseudo&nbsp;:</span></div>
+        <div><span id="menu_pseudo" onclick="choisir_pseudo()" style="background: white; padding: 0 10px; font-size: 34px"></span></div>
+      </div>
+      <div style="text-align: right; font-family: 'Dancing Script'; color: rgb(208, 155, 244); font-size: 70px; margin-bottom: 50px"><span style="background: white; padding: 0 10px">LabyPro</span></div>
+      <img id="perso" src="images/persos/dave.png" style="position: fixed; left: -20px; margin-top: 80px; height: 320px">
+      <div style="text-align: right; font-size: 50px">
+        <div style="color:rgb(255, 0, 234); margin-bottom: 50px"><span style="background: white; padding: 0 10px" onclick="demarrer_le_niveau(1)">Jouer niveau 1</span></div>
+        <div style="color:rgb(255, 0, 0); margin-bottom: 50px"><span style="background: white; padding: 0 10px" onclick="afficher_la_page('personnages')">Personnages</span></div>
+        <div style="color:rgb(198, 154, 9); margin-bottom: 50px"><span style="background: white; padding: 0 10px" onclick="afficher_la_page('carriere')">Carrière</span></div>
+        <div style="color:rgb(94, 198, 164); margin-bottom: 50px"><span style="background: white; padding: 0 10px" onclick="afficher_la_page('boutique')">Boutique</span></div>
+      </div>
     </div>
 
-    <div id="page_menu" class="page" style="padding: 10px; background-image: url(images/labi3d.gif);">
-      <div style="position: fixed; text-align: left; color: black">
-        <div><span style="background: white; padding: 0 10px; font-size: 20px;">Pseudo&nbsp;:</span></div>
-        <div><span id="menu_pseudo" onclick="choisir_pseudo()" style="background: white; padding: 0 10px; font-size: 34px;"></span></div>
+    <div id="page_personnages" class="page" style="padding: 10px; background-image: url(images/backgrounds/labi3d.gif); color: black">
+      <div style="position: fixed; left: 5px; top: 5px; background: white; padding: 0 10px" onclick="afficher_la_page('menu')">&lt;&nbsp;Retour au menu</div>
+      <div style="position: fixed; left: 50%; top: 50px; transform: translateX(-50%); font-size: 40px; color: rgb(255, 0, 0); background: white; padding: 0 10px">Personnages</div>
+      <div style="position: fixed; left: 10px; right: 10px; top: 100px; bottom: 100px; padding: 20px; overflow-y: scroll; background: rgba(255, 255, 255, 0.95); border: solid 1px black">
+        <div>Choisir un personnage :</div>
+        <div style="margin-top: 20px"><label style="display: flex; align-items: center; gap: 5px"><input type="radio" name="perso" value="dave" checked onchange="if(this.checked) selectionner_perso('dave')" style="width: 20px; height: 20px"><div style="display: inline-block; width: 35px; height: 35px; background-image: url(images/sprites/dave.png)"></div>Dave</label></div>
+        <div style="margin-top: 20px"><label style="display: flex; align-items: center; gap: 5px"><input type="radio" name="perso" value="davette" onchange="if(this.checked) selectionner_perso('davette')" style="width: 20px; height: 20px"><div style="display: inline-block; width: 35px; height: 35px; background-image: url(images/sprites/davette.png)"></div>Davette</label></div>
+        <div style="margin-top: 20px"><label style="display: flex; align-items: center; gap: 5px"><input type="radio" name="perso" value="mark" onchange="if(this.checked) selectionner_perso('mark')" style="width: 20px; height: 20px"><div style="display: inline-block; width: 35px; height: 35px; background-image: url(images/sprites/mark.png)"></div>Mark</label></div>
+        <div style="margin-top: 20px"><label style="display: flex; align-items: center; gap: 5px"><input type="radio" name="perso" value="john" onchange="if(this.checked) selectionner_perso('john')" style="width: 20px; height: 20px"><div style="display: inline-block; width: 35px; height: 35px; background-image: url(images/sprites/john.png)"></div>John</label></div>
+        <div style="margin-top: 20px"><label style="display: flex; align-items: center; gap: 5px"><input type="radio" name="perso" value="louis" onchange="if(this.checked) selectionner_perso('louis')" style="width: 20px; height: 20px"><div style="display: inline-block; width: 35px; height: 35px; background-image: url(images/sprites/louis.png)"></div>Louis</label></div>
+        <div style="margin-top: 20px"><label style="display: flex; align-items: center; gap: 5px"><input type="radio" name="perso" value="jeanne" onchange="if(this.checked) selectionner_perso('jeanne')" style="width: 20px; height: 20px"><div style="display: inline-block; width: 35px; height: 35px; background-image: url(images/sprites/jeanne.png)"></div>Jeanne</label></div>
+        <div style="margin-top: 20px"><label style="display: flex; align-items: center; gap: 5px"><input type="radio" name="perso" value="lolo" onchange="if(this.checked) selectionner_perso('lolo')" style="width: 20px; height: 20px"><div style="display: inline-block; width: 35px; height: 35px; background-image: url(images/sprites/lolo.png)"></div>Lolo</label></div>
+        <div style="margin-top: 20px"><label style="display: flex; align-items: center; gap: 5px"><input type="radio" name="perso" value="jack" disabled style="width: 20px; height: 20px"><img src="images/cadenas.png" width="35" height="35">Jack</label></div>
+        <div style="margin-top: 20px"><label style="display: flex; align-items: center; gap: 5px"><input type="radio" name="perso" value="pedro" disabled style="width: 20px; height: 20px"><img src="images/cadenas.png" width="35" height="35">Pedro</label></div>
+        <div style="margin-top: 20px"><label style="display: flex; align-items: center; gap: 5px"><input type="radio" name="perso" value="davi" disabled style="width: 20px; height: 20px"><img src="images/cadenas.png" width="35" height="35">Davi</label></div>
+        <div style="margin-top: 20px"><label style="display: flex; align-items: center; gap: 5px"><input type="radio" name="perso" value="kes" disabled style="width: 20px; height: 20px"><img src="images/cadenas.png" width="35" height="35">Kês</label></div>
+        <div style="margin-top: 20px"><label style="display: flex; align-items: center; gap: 5px"><input type="radio" name="perso" value="abcxyz" disabled style="width: 20px; height: 20px"><img src="images/cadenas.png" width="35" height="35">Abcxyz</label></div>
+        <div style="margin-top: 20px"><label style="display: flex; align-items: center; gap: 5px"><input type="radio" name="perso" value="craquy" disabled style="width: 20px; height: 20px"><img src="images/cadenas.png" width="35" height="35">Craquy</label></div>
       </div>
-      <div style="text-align: right; font-family: 'Dancing Script'; color: rgb(208, 155, 244); font-size: 70px; margin-bottom: 50px"><span style="background: white; padding: 0 10px;">LabyPro</span></div>
-      <img src="images/dave.png" style="position: fixed; left: -20px; margin-top: 80px; height: 320px;">
-      <div style="text-align: right; font-size: 50px;">
-        <div style="color:rgb(255, 0, 234); margin-bottom: 50px;"><span style="background: white; padding: 0 10px;" onclick="charger_le_jeu(1)">Jouer niveau 1</span></div>
-        <div style="color:rgb(255, 0, 0); margin-bottom: 50px;"><span style="background: white; padding: 0 10px;">Personnages</span></div>
-        <div style="color:rgb(198, 154, 9); margin-bottom: 50px"><span style="background: white; padding: 0 10px;">Carrière</span></div>
-        <div style="color:rgb(94, 198, 164); margin-bottom: 50px;"><span style="background: white; padding: 0 10px;">Boutique</span></div>
+      <button style="position: fixed; left: 50%; bottom: 10px; transform: translateX(-50%);" onclick="afficher_la_page('menu')">Appliquer</button>
+    </div>
+
+    <div id="page_carriere" class="page" style="padding: 10px; background-image: url(images/backgrounds/labi3d.gif); color: black">
+      <div style="position: fixed; left: 5px; top: 5px; background: white; padding: 0 10px" onclick="afficher_la_page('menu')">&lt;&nbsp;Retour au menu</div>
+      <div style="position: fixed; left: 50%; top: 50px; transform: translateX(-50%); font-size: 40px; color: rgb(198, 154, 9); background: white; padding: 0 10px">Carrière</div>
+      <div id="carriere" style="position: fixed; left: 10px; right: 10px; top: 100px; bottom: 10px; padding: 20px; overflow-y: scroll; background: rgba(255, 255, 255, 0.95); border: solid 1px black">
+        <div onclick="demarrer_le_niveau(1, true)" style="margin-top: 20px;">Niveau 1</div>
+        <div onclick="demarrer_le_niveau(2, true)" style="margin-top: 20px;">Niveau 2</div>
+        <div onclick="demarrer_le_niveau(3, true)" style="margin-top: 20px;">Niveau 3</div>
+        <div onclick="demarrer_le_niveau(4, true)" style="margin-top: 20px;">Niveau 4</div>
+        <div onclick="demarrer_le_niveau(5, true)" style="margin-top: 20px;">Niveau 5</div>
+        <div onclick="demarrer_le_niveau(6, true)" style="margin-top: 20px;">Niveau 6</div>
+        <div onclick="demarrer_le_niveau(7, true)" style="margin-top: 20px;">Niveau 7</div>
+        <div onclick="demarrer_le_niveau(8, true)" style="margin-top: 20px;">Niveau 8</div>
       </div>
     </div>
+
+    <div id="page_boutique" class="page" style="padding: 10px; background-image: url(images/backgrounds/labi3d.gif); color: black">
+      <div style="position: fixed; left: 5px; top: 5px; background: white; padding: 0 10px" onclick="afficher_la_page('menu')">&lt;&nbsp;Retour au menu</div>
+      <div style="position: fixed; left: 50%; top: 50px; transform: translateX(-50%); font-size: 40px; color: rgb(94, 198, 164); background: white; padding: 0 10px">Boutique</div>
+      <div style="position: fixed; left: 10px; right: 10px; top: 100px; bottom: 10px; padding: 20px; overflow-y: scroll; background: rgba(255, 255, 255, 0.95); border: solid 1px black">
+        <div>1P=1€ 3P=2.5€ 5P=4€ 10P=7.5€ 15P=11€ 20P=14.5€</div>
+        <div style="border: solid 1px black; margin-top: 15px">
+          <div>Davette - 1P</div>
+          <div><img src="images/persos/davette.png" width="200"></div>
+        </div>
+        <div style="border: solid 1px black; margin-top: 15px">
+          <div>Mark - 1P</div>
+          <div><img src="images/persos/mark.png" width="200"></div>
+        </div>
+        <div style="border: solid 1px black; margin-top: 15px">
+          <div>John - 2P</div>
+          <div><img src="images/persos/john.png" width="200"></div>
+        </div>
+        <div style="border: solid 1px black; margin-top: 15px">
+          <div>X231,lolo - 3P</div>
+          <div><img src="images/persos/lolo.png" width="200"></div>
+        </div>
+        <div style="border: solid 1px black; margin-top: 15px">
+          <div>Jack - 4P</div>
+          <div><img src="images/persos/jack.png" width="200"></div>
+        </div>
+        <div style="border: solid 1px black; margin-top: 15px">
+          <div>Louis - 5P</div>
+          <div><img src="images/persos/louis.png" width="200"></div>
+        </div>
+        <div style="border: solid 1px black; margin-top: 15px">
+          <div>Jeanne - 5P</div>
+          <div><img src="images/persos/jeanne.png" width="200"></div>
+        </div>
+        <div style="border: solid 1px black; margin-top: 15px">
+          <div>Kês - 12P</div>
+          <div><img src="images/persos/kes.png" width="200"></div>
+        </div>
+        <div style="border: solid 1px black; margin-top: 15px">
+          <div>Craquy - 7P</div>
+          <div><img src="images/persos/craquy.png" width="200"></div>
+        </div>
+        <div style="border: solid 1px black; margin-top: 15px">
+          <div>Abcxyz - 10P</div>
+          <div><img src="images/persos/abcxyz.png" width="200"></div>
+        </div>
+        <div style="border: solid 1px black; margin-top: 15px">
+          <div>Davi - 15P</div>
+          <div><img src="images/persos/davi.png" width="200"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="page_decompte" class="page" style="font-size: 100px"></div>
 
     <div id="page_jeu" class="page">
-      <canvas id="grid" style="position: fixed; top: 0; left: 50%; margin-left: -17px; transform: translate(0, 0);"></canvas>
-      <div id="sprite" style="position: fixed; top: 100px; left: 50%; margin-left: -17px; width: 35px; height: 35px; background-image: url(images/sprites/dave.png); background-size: cover; background-repeat: no-repeat;"></div>
+      <canvas id="maze" style="position: fixed; top: 0; left: 50%"></canvas>
+      <div id="sprite" style="position: fixed; top: 100px; left: 50%; margin-left: -17px; width: 35px; height: 35px; background-image: url(images/sprites/dave.png)"></div>
       <svg id="joystick" width="150" height="150" style="position: fixed; right: 10px; bottom: 10px">
-        <circle cx="50%" cy="50%" r="50" stroke="rgba(127,127,127,0.95)" stroke-width="40" fill="none"></circle>
+        <circle cx="50%" cy="50%" r="50" stroke="rgba(127,127,127,0.6)" stroke-width="40" fill="none"></circle>
         <polygon points="75,15 60,40 90,40" fill="rgba(255,255,255,0.8)" />
         <polygon points="75,135 60,110 90,110" fill="rgba(255,255,255,0.8)" />
         <polygon points="15,75 40,60 40,90" fill="rgba(255,255,255,0.8)" />
         <polygon points="135,75 110,60 110,90" fill="rgba(255,255,255,0.8)" />
       </svg>
+      <div id="timer" style="position: fixed; left: 5px; top: 5px"></div>
+      <div id="niveau" style="position: fixed; left: 50%; top: 10px; transform: translateX(-50%)"></div>
+      <div style="position: fixed; right: 10px; top: 5px" onclick="afficher_la_page('menu')">Menu</div>
+    </div>
+
+    <div id="page_perdu" class="page">
+      <div style="font-size: 80px">Perdu !</div>
+      <div style="font-size: 100px">😭</div>
+      <div style="font-size: 40px">Temps écoulé</div>
+      <div style="margin-top: 80px" onclick="afficher_la_page('menu')">Retour au menu</div>
+      <div style="margin-top: 40px"><button onclick="demarrer_le_niveau(prochain_niveau)">Réessayer</button></div>
+    </div>
+
+    <div id="page_gagne" class="page">
+      <div style="font-size: 80px">Bravo !</div>
+      <img style="position: fixed; transform: translate(-50%, -250px)" src="images/confettis.gif" width="400">
+      <div style="font-size: 100px">🥳</div>
+      <div style="font-size: 40px">Niveau terminé</div>
+      <div style="margin-top: 80px" onclick="afficher_la_page('menu')">Retour au menu</div>
+      <div style="margin-top: 40px"><button onclick="demarrer_le_niveau(prochain_niveau)">Niveau suivant</button></div>
+    </div>
+
+    <div id="page_fini" class="page">
+      <div style="font-size: 80px">Bravo !</div>
+      <img style="position: fixed; transform: translate(-50%, -250px)" src="images/confettis.gif" width="400">
+      <div style="font-size: 100px">🥳</div>
+      <div style="font-size: 40px; margin-top: 20px">Vous avez terminé le jeu ! Félicitations</div>
+      <div style="margin-top: 80px"><button onclick="afficher_la_page('menu')">Retour au menu</button></div>
     </div>
 
     <script>
-      const masque_noir = document.getElementById("masque_noir");
-      const sprite = document.getElementById("sprite");
-      const grid = document.getElementById("grid");
-      const joystick = document.getElementById("joystick");
-
-
       // =========== Général ============
+      // Déclaration des variables globales :
+      let niveau_en_cours = 0; // 0 = jeu éteint
+      let prochain_niveau = 1;
+      let niveau_autorise = 1; // niveau autorisé
+      let minuteur_en_cours = 0; // minuteur du jeu
+      let audio_en_cours = null;
       const pages = {
         chargement: document.getElementById("page_chargement"),
         menu: document.getElementById("page_menu"),
-        jeu: document.getElementById("page_jeu")
+        personnages: document.getElementById("page_personnages"),
+        carriere: document.getElementById("page_carriere"),
+        boutique: document.getElementById("page_boutique"),
+        decompte: document.getElementById("page_decompte"),
+        jeu: document.getElementById("page_jeu"),
+        perdu: document.getElementById("page_perdu"),
+        gagne: document.getElementById("page_gagne"),
+        fini: document.getElementById("page_fini"),
       }
 
+      // Fonctions :
       function afficher_la_page (page) {
-        for(const page_name in pages) pages[page_name].style.display = "none";
-        pages[page].style.display = "block";
+        if(!pages[page]) {
+          alert("Cette page n'existe pas !");
+          return;
+        }
+        // réinitialiser les variables
+        niveau_en_cours = 0;
+        minuteur_en_cours = 0;
+
+        // afficher la page
+        for(const page_name in pages) pages[page_name].classList.remove("show");
+        pages[page].classList.add("show");
+        
+        // jouer la musique associée
+        if (page === "menu") jouer_la_musique("sounds/musics/menu.mp3", true);
+        else if (page === "perdu") jouer_la_musique("sounds/echec.mp3");
+        else if (page === "gagne" || page === "fini") jouer_la_musique("sounds/succes.mp3");
       }
 
-      function actualiser_pseudo () {
-        const pseudo = localStorage.getItem("pseudo") ?? "Choisir";
-        document.getElementById("menu_pseudo").innerText = pseudo;
+      function jouer_la_musique(file, loop) {
+        if (audio_en_cours && audio_en_cours?.src == file) return; // si on demande de jouer le même fichier, on ignore
+        if (audio_en_cours) {
+          audio_en_cours.pause();
+          audio_en_cours.removeEventListener('timeupdate', audio_en_cours._seamlessLoopHandler || (()=>{}));
+        }
+        if (!file) { audio_en_cours = null; return; }
+        audio_en_cours = new Audio(file);
+        audio_en_cours.volume = 0.8;
+        if (loop) {
+          // Use a small offset to avoid gaps
+          const loopOffset = 0.1;
+          const handler = function() {
+            if (audio_en_cours.duration - audio_en_cours.currentTime < loopOffset) {
+              audio_en_cours.currentTime = 0;
+              audio_en_cours.play();
+            }
+          };
+          audio_en_cours._seamlessLoopHandler = handler;
+          audio_en_cours.addEventListener('timeupdate', handler);
+        }
+        audio_en_cours.play();
       }
 
       function choisir_pseudo () {
@@ -115,69 +285,174 @@
         actualiser_pseudo();
       }
 
-      // Code qui s'exécute au démarrage
-      actualiser_pseudo();
-      afficher_la_page("chargement");
-      setTimeout(() => masque_noir.style.opacity = 0, 10);
-      setTimeout(() => masque_noir.style.opacity = 1, 2000);
-      setTimeout(() => afficher_la_page("menu"), 2200);
-      setTimeout(() => masque_noir.style.opacity = 0, 2200);
+      function actualiser_pseudo () {
+        const pseudo = localStorage.getItem("pseudo") ?? "Choisir";
+        document.getElementById("menu_pseudo").innerText = pseudo;
+      }
+      actualiser_pseudo(); // actualiser au démarrage
+
+      function selectionner_perso (perso) {
+        document.getElementById("perso").src = "images/persos/"+perso+".png";
+        document.getElementById("sprite").style.backgroundImage = "url(images/sprites/"+perso+".png)";
+      }
+
 
       // =========== Gestion du jeu ============
+      // Déclaration des variables globales :
       const niveaux = [
-        { // niveau 1
-          name: "Niveau 1",
+        false, // Niveau 0 (jeu éteint)
+        { // Niveau 1
           labyrinthe: [20,20,null,null,null,null,null,null,null,null,null,true,null,null,null,null,null,null,null,null,null,null,true,null,true,true,null,true,null,true,null,null,true,true,true,true,true,true,true,true,null,null,true,true,true,true,true,true,true,true,true,null,true,null,null,null,true,null,null,null,null,true,null,null,null,true,null,null,null,true,true,true,true,true,true,true,true,true,true,null,true,null,true,null,null,null,null,true,null,true,null,true,null,null,true,null,true,null,true,null,true,true,true,null,true,true,true,null,true,null,true,null,true,null,null,true,null,null,null,null,null,null,true,null,true,null,null,null,null,null,null,true,null,true,true,true,true,true,null,true,true,true,true,true,null,null,true,null,true,true,true,true,null,null,null,null,null,null,true,null,null,null,null,true,true,true,true,true,null,null,null,null,true,null,true,true,true,null,true,true,true,true,true,true,null,null,null,null,true,true,true,true,true,true,null,null,null,null,null,null,null,true,true,true,true,true,true,null,true,null,null,true,null,true,true,true,null,true,true,true,true,true,null,null,null,true,null,true,true,true,true,null,true,null,null,null,true,null,null,null,null,null,null,true,null,null,null,true,null,null,null,null,true,true,true,null,true,true,true,true,true,true,true,true,true,true,null,null,true,true,true,null,null,null,null,null,null,null,null,null,null,null,null,null,null,true,true,true,null,null,true,true,true,true,null,true,true,true,true,true,true,true,true,true,true,null,null,null,true,null,null,null,null,null,true,null,null,null,null,null,null,null,null,null,null,true,true,true,null,true,true,true,true,null,null,true,null,true,null,true,true,true,true,true,true,null,null,true,true,null,null,null,null,true,true,null,true,true,true,null,null,null,null,null,true,true,null,null,null,true,true,null,null,true,true,true,null,null,null,true,true,true,true,null,null,true,true,true,true,true,null,null,null,null,null,true,null,true,true,null,null,null,true,true,null,null,null,null,null,null,true,null,true,true,true,true,null,null,null,true,true,true,null,null,true,true,null,true,null,true,null,null,true,null,true,null,true,true,null,null,null,true,true,null,true,true,true,true,true,true,null,true,true,true,true,null,null,null,true,true,true,true,true,true,null,true,null,true,null,null,true,null,null,null,null,true,null,null,null,null,null,true,null,null,null,null,null,null,null,null,null,null,null,true,null,null,true,true,true,true,null,null,null,true,true,null,null,null,null,true,true,true,true,null,true,null,null,true,null,true,null,true,true,null,true,true,true,true,null,null,null,true,true,null,null,true,null,null,null,true,null,true,true,null,true,null,null,null,true,true,true,null,null,true,true,null,true,true,null,true,true,null,null,null,null,true,true,null,null,null,null,true,null,null,true,true,null,true,null,true,true,true,true,null,true,true,null,true,true,true,true,true,true,true,null,true,true,true,null,null,null,null,null,null,null,true,null,null,null,null,null,null,null,null,null,true,null,null,true,null,null,true,true,null,true,null,true,null,true,true,true,true,true,true,true,null,true,true,true,true,null,null,null,null,true,null,null,null,true,null,null,null,null,null,null,true,null,null,null,true,true,true,true,null,null,true,true,null,null,true,true,true,true,true,true,null,null,true,true,null,null,null,true,true,null,null,true,true,null,null,null,true,null,null,true,true,true,true,null,true,true,true,null,null,true,null,true,true,true,true,null,null,null,null,null,null,null,null,null,null,null,null,true,null,true,null,null,true,null,true,true,true,true,true,true,true,true,true,true,true,true,true,null,null,null,null,null,null,null,null,null,null,null,true,null,null,null,null,null,null,null,null],
-          couleur_des_murs: "",
-          image_de_fond: ""
-        }
+          minuteur_en_secondes: 40,
+          couleur_des_murs: "rgb(255, 220, 180)", // rouge, vert, bleu (0-255)
+          image_de_fond: "fond2.gif", // l'image doit être placée dans le dossier images/backgrounds
+          musique: "niveau1.mp3", // la musique doit être placée dans le dossier sounds
+        },
+        { // Niveau 2
+          labyrinthe: [20,20,null,null,null,null,null,null,null,null,true,null,null,null,null,null,null,null,null,null,null,null,true,true,true,true,true,true,null,true,true,true,true,true,true,true,true,true,true,true,null,true,null,null,null,null,null,true,null,true,null,null,null,null,null,true,null,null,null,true,null,true,null,true,true,true,true,true,null,null,true,true,true,true,null,null,true,true,true,null,null,null,true,null,null,null,null,null,true,null,null,null,null,true,true,null,null,null,null,null,true,true,true,true,true,true,true,true,true,true,true,true,true,null,null,true,null,true,null,null,null,true,null,null,null,null,null,true,null,null,null,null,true,true,true,true,true,true,null,true,true,true,true,true,true,true,true,true,true,true,true,null,null,null,null,true,null,null,true,null,null,null,null,null,null,null,true,null,null,null,null,true,true,null,null,null,true,null,true,true,true,true,true,true,true,true,true,true,true,true,null,null,true,true,true,true,null,null,null,null,null,null,true,null,null,true,null,null,null,null,true,true,null,null,null,null,null,true,true,true,true,true,true,true,true,true,true,true,true,null,null,true,true,true,true,null,true,null,null,null,null,null,null,null,true,null,null,null,true,true,null,null,null,null,null,null,true,true,true,true,true,true,true,null,null,true,true,null,null,true,true,true,true,true,null,null,null,null,null,null,null,null,true,true,true,null,null,true,true,true,true,true,true,true,null,true,true,true,true,true,true,true,null,null,true,true,true,null,null,null,null,null,null,null,true,null,null,null,null,null,null,true,true,true,null,null,true,true,true,true,true,true,true,null,null,true,true,true,true,true,true,null,null,true,true,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,true,true,true,null,true,null,true,true,true,true,true,true,null,null,null,true,null,true,null,true,null,null,null,null,null,null,null,null,null,null,null,null,true,true,true,true,true,true,true,null,true,true,true,true,true,true,true,true,true,true,true,null,true,true,null,null,null,true,true,null,null,null,null,null,null,null,null,null,null,null,null,true,null,null,null,null,null,true,null,true,true,true,true,true,true,true,true,true,true,true,null,true,null,true,null,null,true,true,null,null,true,null,null,null,null,true,null,null,true,null,true,null,null,true,true,true,null,null,true,true,null,true,true,true,true,true,true,true,true,null,null,true,null,null,null,null,true,null,null,null,true,null,null,null,null,null,null,null,null,true,true,true,true,true,true,true,true,true,true,null,null,true,true,true,true,true,true,true,null,null,null,null,null,null,null,null,null,null,null,true,null,null,null,null,null,true,null,null,true,true,true,true,true,true,true,true,true,true,true,null,true,true,true,true,true,true,true,null,null,null,null,null,null,null,null,null,null,null,true,null,null,null,null,null,null,null,null,true,true,true,true,true,true,true,true,true,true,true,null,true,true,true,true,true,true,true,null,null,null,null,null,null,null,null,null,null,null,true,true,null,null,null,true,null,null,null,true,true,true,true,true,true,true,true,true,true,null,true,true,true,true,true,true,true,true,null,true,null,true,null,null,null,null,null,null,null,true,null,null,null,null,null,null,null,null,null,null,null,null,true,null,null,true,true,null,null,null,true,true,true,true,true,true,true,null,true,true,true,true,true,true,true,null,null,null,true,true,null,null,null,null,null,null,null,true,null,null,null,null,null,null,true,null,true,true,null,null,null,true,true,true,true,true,null,true,true,true,true,true,true,null,true,true,true,true,true,true,true,null,null,null,true,null,null,null,null,null,null,null,null,null,true,null,null,null,null,null,null,null,null,null,null],
+          minuteur_en_secondes: 40,
+          couleur_des_murs: "rgb(255, 40, 40)", // rouge, vert, bleu (0-255)
+          image_de_fond: "fond3.gif", // l'image doit être placée dans le dossier images/backgrounds
+          musique: "niveau2.mp3", // la musique doit être placée dans le dossier sounds
+        },
+        { // Niveau 3
+          labyrinthe: [20,20,null,null,null,null,null,null,null,null,true,null,null,null,null,null,null,null,null,null,null,null,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,null,null,true,true,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,true,true,null,null,null,true,true,true,true,true,true,true,true,true,true,true,true,true,true,null,true,null,true,true,null,null,null,true,null,null,true,null,null,true,null,null,null,null,null,true,true,null,true,null,true,true,true,null,null,null,true,true,null,true,true,true,true,true,null,null,null,true,true,null,null,null,null,true,true,null,null,true,null,null,null,null,null,true,true,true,null,null,null,true,true,true,null,null,null,true,true,null,true,true,true,true,true,null,true,null,true,true,null,null,null,true,true,true,true,null,null,true,null,null,null,null,null,true,true,null,true,null,true,true,true,null,null,null,true,true,null,true,true,true,true,true,null,null,null,true,true,true,null,null,null,true,true,null,null,true,null,null,null,null,null,true,true,true,null,null,null,true,true,true,null,null,null,true,true,null,true,true,true,true,true,null,true,null,true,true,null,null,null,true,true,true,true,null,null,true,null,null,null,null,null,true,true,null,true,null,true,true,true,null,null,null,true,true,null,true,true,true,true,true,null,null,null,true,true,true,null,null,null,true,true,null,null,true,null,null,null,null,null,true,true,true,null,null,null,true,true,true,null,null,null,true,true,null,true,true,true,true,true,null,true,null,true,true,null,null,null,true,true,true,true,null,null,true,null,null,null,null,null,true,true,null,true,null,true,true,true,null,null,null,true,true,null,true,true,true,true,true,null,null,null,true,true,true,null,null,null,true,true,null,null,true,null,null,null,null,null,true,true,true,null,null,null,true,true,true,null,null,null,true,true,null,true,true,true,true,true,null,true,null,true,true,null,null,null,true,true,true,true,null,null,true,null,null,null,null,null,true,true,null,true,null,true,true,true,null,null,null,true,true,null,true,true,true,true,true,null,null,null,true,true,true,null,null,null,true,true,null,null,true,null,null,null,null,null,true,true,true,null,null,null,true,true,true,null,null,null,true,true,null,true,true,true,true,true,null,true,null,true,true,null,null,null,true,true,true,true,null,null,true,null,null,null,null,null,true,true,null,true,null,true,true,true,null,null,null,true,true,null,true,true,true,true,true,null,null,null,true,true,true,null,null,null,true,true,null,null,true,null,null,null,null,null,true,true,true,null,null,null,true,true,true,null,null,null,true,true,null,true,true,true,true,true,null,true,null,true,true,null,null,null,true,true,true,true,null,null,true,null,null,null,null,null,true,true,null,true,null,true,true,true,null,null,null,true,true,null,true,true,true,true,true,null,null,null,true,true,true,null,null,null,true,true,null,null,true,null,null,null,null,null,true,true,true,null,null,null,true,true,true,null,null,null,true,true,null,true,true,true,true,true,null,true,null,true,true,null,null,null,true,true,true,true,null,null,true,null,null,null,null,null,true,true,null,true,null,true,true,true,null,null,null,true,true,null,true,true,true,true,true,null,null,null,true,true,true,null,null,null,true,true,null,null,true,null,null,null,null,null,true,true,true,null,null,null,true,true,true,null,null,null,true,true,null,true,true,true,true,true,null,true,null,true,true,null,null,null,true,true,true,true,null,null,true,null,null,null,null,null,true,true,null,true,true,true,true,true,true,true,null,true,true,null,true,true,true,true,true,true,null,null,null,null,null,null,null,null,null,null,true,true,true,null,null,null,null,null,null,null,null],
+          minuteur_en_secondes: 80,
+          couleur_des_murs: "rgb(210, 210, 210)", // rouge, vert, bleu (0-255)
+          image_de_fond: "fond4.gif", // l'image doit être placée dans le dossier images/backgrounds
+          musique: "niveau3.mp3", // la musique doit être placée dans le dossier sounds
+        },
+        { // Niveau 4
+          labyrinthe: [20,20,null,null,null,null,null,null,null,null,true,null,null,null,null,null,null,null,null,null,null,null,null,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,null,true,null,null,null,null,null,true,null,true,null,null,null,null,null,null,null,null,null,true,null,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,null,true,null,null,null,null,null,true,null,true,null,null,null,null,null,null,null,null,null,true,null,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,null,true,null,null,null,null,null,true,null,true,null,null,null,null,null,null,null,null,null,true,null,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,null,null,true,null,null,null,null,null,true,null,true,null,null,null,null,null,null,null,null,null,true,null,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,null,true,null,true,null,null,null,null,null,true,null,null,null,null,null,null,null,null,null,null,null,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,null,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,true,null,null,null,null,null,null,true,true,true,true,true,true,true,true,true,true,true,true,null,true,null,true,true,true,true,null,null,null,null,null,null,null,null,null,null,null,null,null,true,null,true,null,null,null,true,true,true,true,true,true,true,true,true,true,true,true,true,true,null,null,true,true,null,true,null,null,null,null,null,null,null,null,null,null,null,null,null,true,null,true,null,null,true,null,true,true,true,true,true,true,true,true,true,true,true,true,null,true,null,true,true,null,true,null,null,null,null,null,null,true,true,null,true,true,true,null,true,null,null,true,null,null,true,true,true,true,true,true,null,null,null,true,null,null,true,true,null,null,null,null,true,true,null,null,null,null,null,true,null,true,true,null,true,true,null,true,null,true,true,true,null,true,true,true,true,true,null,true,null,null,null,null,null,null,null,true,null,null,null,true,null,null,null,null,null,null,null,true,true,true,true,true,null,null,true,null,true,true,null,true,true,true,true,true,true,true,null,null,true,null,null,true,true,true,null,null,null,null,true,null,null,true,true,null,null,true,true,null,null,true,true,null,null,true,null,true,true,true,null,true,true,null,true,true,true,null,true,true,true,true,true,true,null,true,null,null,null,true,null,null,null,true,null,null,true,null,true,null,null,true,null,null,true,null,true,true,null,true,true,true,null,true,true,true,true,null,null,null,true,true,true,true,null,null,null,null,true,null,null,null,true,null,null,null,null,true,null,null,null,null,null,true,null,true,true,true,null,true,true,null,true,true,null,true,true,true,true,true,true,true,null,true,null,true,null,true,true,null,null,true,null,null,true,true,null,null,true,null,null,null,true,null,null,null,null,null,true,true,null,true,true,true,null,null,true,null,true,true,true,true,null,null,true,true,true,true,null,null,true,null,null,true,null,true,true,true,null,true,null,true,null,true,null,null,null,null,true,null,null,true,null,null,null,null,null,null,null,null,null,true,null,null,true,null,true,null,null,true,true,true,null,true,null,true,null,true,null,true,null,null,true,true,true,true,true,true,true,null,null,true,true,true,true,true,true,true,true,true,true,null,true,null,true,null,true,null,true,true,null,true,null,true,null,true,null,true,null,true,null,null,null,null,null,null,null,null,null,true,null,null,null,null,null,null,null,null,null,null],
+          minuteur_en_secondes: 15,
+          couleur_des_murs: "rgb(100, 255, 0)", // rouge, vert, bleu (0-255)
+          image_de_fond: "fond5.gif", // l'image doit être placée dans le dossier images/backgrounds
+          musique: "niveau4.mp3", // la musique doit être placée dans le dossier sounds
+        },
+        { // Niveau 5
+          labyrinthe: [20,20,null,null,null,null,null,null,null,null,null,true,true,null,null,null,null,null,null,null,null,null,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,null,true,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,true,null,null,true,true,true,true,true,true,true,true,null,true,true,true,true,true,true,true,null,null,true,true,null,null,null,null,null,null,null,true,true,null,null,null,null,null,null,true,true,null,null,null,true,true,true,true,true,true,null,null,null,true,true,true,true,true,null,null,null,true,true,true,null,null,null,null,null,true,true,true,true,null,null,null,null,true,true,true,null,null,null,null,true,true,true,true,null,null,null,null,null,true,true,true,null,null,null,null,true,true,true,null,null,null,null,true,true,true,true,true,true,null,null,null,true,true,true,null,null,null,true,true,true,true,true,null,null,null,null,null,true,true,true,true,null,null,null,true,true,null,null,null,null,null,null,true,true,true,true,null,null,null,null,null,true,true,null,null,true,true,true,true,true,true,true,null,null,null,true,true,true,true,true,true,null,null,true,null,null,null,null,null,null,null,null,true,true,null,null,null,null,null,null,null,true,null,true,true,true,true,true,true,true,true,true,null,true,true,true,true,true,true,true,true,null,null,null,null,null,null,null,null,null,null,true,true,null,null,null,null,null,null,null,null,null,true,true,true,true,true,true,true,true,null,null,null,true,true,true,true,true,true,true,null,true,null,null,null,null,null,null,null,true,true,true,true,null,null,null,null,null,null,true,null,null,true,true,true,true,true,true,null,null,null,null,null,true,true,true,true,true,null,null,true,true,null,null,null,null,null,true,true,true,true,true,true,null,null,null,null,true,true,null,null,null,true,true,true,true,true,null,null,null,null,null,true,true,true,true,null,null,null,true,true,null,null,null,null,null,null,true,true,true,true,null,null,null,null,null,true,true,null,null,true,true,true,true,true,true,true,null,null,null,true,true,true,true,true,true,null,null,true,null,null,null,null,null,null,null,null,true,true,null,null,null,null,null,null,null,true,null,true,true,true,true,true,true,true,true,true,null,true,true,true,true,true,true,true,true,null,true,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,true,null,null,true,true,true,true,true,true,null,true,null,true,null,true,true,true,true,true,null,null,true,true,null,null,null,null,null,true,true,true,true,true,true,null,null,null,null,true,true,null,null,null,true,true,true,true,null,null,null,null,null,null,null,true,true,true,null,null,null,true,true,true,null,null,null,true,true,true,true,true,true,true,true,null,null,true,true,true,null,null,null,null,true,true,null,null,null,null,null,null,null,null,null,true,null,null,null,null,true,true,true,true,null,true,true,true,true,true,true,true,true,true,true,true,true,true,true,null,null,null,null,true,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,true,true,true,null,null,true,true,true,true,true,true,true,true,true,true,null,true,true,true,null,null,null,true,true,true,null,null,null,null,null,null,null,null,null,true,true,null,null,null,true,true,null,null,null,null,true,true,true,true,true,true,true,true,null,null,null,true,true,null,null,true,true,true,true,true,null,null,null,null,null,null,null,true,true,true,true,null,null,true,null,null,null,null,null,null,true,true,true,true,true,true,null,null,null,null,null,true,null,null,true,true,true,true,true,true,true,null,true,null,true,true,true,true,true,true,true,null,null,null,null,null,null,null,null,null,null,true,true,null,null,null,null,null,null,null,null],
+          minuteur_en_secondes: 40,
+          couleur_des_murs: "rgb(255, 255, 255)", // rouge, vert, bleu (0-255)
+          image_de_fond: "fond6.gif", // l'image doit être placée dans le dossier images/backgrounds
+          musique: "niveau5.mp3", // la musique doit être placée dans le dossier sounds
+        },
+        { // Niveau 6
+          labyrinthe: [10,51,null,null,null,null,true,null,null,null,null,null,true,null,null,true,null,null,true,null,null,true,true,true,true,null,true,true,true,true,null,null,true,true,true,true,true,null,null,null,true,null,null,null,null,true,true,true,true,null,null,true,true,true,true,null,null,true,null,true,null,null,null,null,null,null,null,true,null,null,null,null,null,null,true,true,true,null,true,true,true,true,true,null,true,true,true,null,null,true,true,null,null,null,null,null,null,true,null,null,true,true,true,null,null,null,null,true,true,true,null,null,true,true,true,null,true,null,null,true,true,null,null,null,null,null,true,null,null,true,true,true,null,true,null,null,true,true,null,null,true,true,true,true,null,true,true,true,true,null,null,true,null,null,null,true,null,null,null,null,null,null,null,null,true,true,null,null,true,true,true,true,null,null,true,null,true,null,null,null,null,true,null,null,true,null,true,null,null,null,true,null,true,null,true,true,true,true,true,true,true,null,null,true,null,null,null,null,true,null,null,true,null,true,true,true,true,true,null,true,null,true,true,null,null,null,true,null,null,null,null,true,null,true,true,true,true,true,true,null,true,null,true,null,null,null,null,true,null,true,true,true,null,true,true,true,true,null,null,null,null,null,true,null,null,null,true,null,true,null,true,true,null,true,null,null,true,null,true,true,null,true,null,null,true,null,null,true,null,null,null,true,true,null,true,true,null,null,null,null,true,true,null,null,null,null,true,true,true,null,null,null,true,true,true,null,true,true,true,null,null,null,null,null,null,true,true,true,true,true,true,true,true,true,null,null,null,null,null,null,true,true,null,null,true,true,true,true,true,null,null,null,true,null,null,null,null,null,true,null,true,true,null,true,true,true,true,null,true,null,true,null,null,null,null,null,true,null,null,true,null,null,true,true,true,true,true,true,true,true,true,null,null,null,null,null,null,null,null,null,null,true,true,true,true,null,true,true,null,true,null,null,null,null,true,null,null,null,true,null,true,true,true,null,true,true,true,true,true,null,null,null,null,true,null,null,null,null,null,true,true,true,true,null,true,true,true,true,null,null,null,null,true,null,null,true,null,null,true,true,true,null,true,true,null,null,true,null,null,null,null,null,null,true,true,true,null,true,true,true,true,true,null,null,null,true,null,null,null,null,true,true,null,true,null,null,true,true,true,null,true,true,true,true,true,null,null,null,null,null,null,null,null,true,null,true,true,true,true,null,null,null,true,null,null,null,null,null,true,null,true,null,null,null,true,true,true,true,true,true,true,true,true,null,null,null,null,null,null,null,null,null,null,true,true,true,null,true,true,true,true,true,null,null,null,true,null,null,null,null,true,null,true,null,null,true,true,true,true,null,true,null,true,true,true,null,true,null,true,true,null,null,null,null,null,null,null,null,null,true,null,true,null,true,null,true,null,true,true,null,true,true,true,true,true,true,true,null,true,null,null,null,null,null,null,null,true,null,null,true,true,true,true,true,true,true,null,true,null,null,null,null,null,null,null,null,true,null,true,true,true,true,true,true,true,true,true,null,null,null,null,null,null,null,null,null,null,true,true,true,true,true,true,true,null,true,null,null,true,null,true,null,true,null,true,null,true,null,null,null,null,null,null,true,true,null,true,null,true,true,true,true,null,null,null,true,true,true,true,true,null,null,null,true,null,null,null,null,null,null,true,null,true,null,true,true,true,true,true,true,true,true,true,null,null,null,null,null,null,null,null,null,null,true,true,true,true,null,true,true,null,true,null,null,true,null,null,null,null,null,true,null,null,null,null,true,true,true,true,true,true,null,true,true,true,true,null,null,null,null,null,true,null,null,null,true,true,true,null,true,null,null,null,null,null,null,null,null,true,null,true,true,true,true,true,null,true,true,true,null,null,true,true,null,true,null,null,null,null,true,null,true,true,null,null,null,null,true,null,null,true,null,null,true,true,null,true,null,true,true,null,null,true,null,true,true,true,null,null,null,true,null,true,null,null,null,null,null,true,true,null,null,true,null,null,true,null,true,null,true,true,true,true,null,true,null,true,null,null,true,null,null,true,true,true,null,null,true,true,null,true,true,true,null,null,true,true,true,null,null,null,null,null,true,null,true,null,true,null,true,true,true,null,null,true,null,null,true,true,null,null,null,true,null,null,null,true,null,null,true,true,null,null,true,true,true,null,true,true,null,null,true,null,true,null,true,true,null,true,true,true,null,null,null,null,null,true,null,null,null,null],
+          minuteur_en_secondes: 80,
+          couleur_des_murs: "rgb(255, 220, 0)", // rouge, vert, bleu (0-255)
+          image_de_fond: "fond7.gif", // l'image doit être placée dans le dossier images/backgrounds
+          musique: "niveau6.mp3", // la musique doit être placée dans le dossier sounds
+        },
+        { // Niveau 7
+          labyrinthe: [71,10,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,true,true,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,true,null,true,true,null,true,null,true,null,null,true,null,true,null,true,null,true,null,null,null,true,null,true,null,true,true,null,true,true,true,true,true,true,true,true,true,true,null,true,null,true,null,null,null,null,null,null,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,null,null,true,null,true,null,true,true,true,true,true,null,true,true,null,true,null,true,true,true,true,true,null,true,null,true,null,true,true,null,true,null,true,null,null,null,true,true,true,true,true,true,null,true,true,true,true,true,true,null,true,null,true,null,null,true,true,null,true,null,null,null,null,null,null,null,null,null,null,null,true,null,true,true,true,true,null,null,null,null,null,null,true,null,true,true,true,null,null,null,null,null,null,true,true,null,true,null,null,null,null,null,null,null,null,true,null,null,null,true,null,null,true,true,true,true,true,true,null,null,null,null,null,null,true,null,null,null,null,null,true,null,true,true,true,true,true,true,true,null,true,null,true,null,true,null,null,true,true,true,true,true,true,null,true,null,null,true,true,true,true,true,true,null,null,true,null,true,true,true,true,null,true,null,true,null,true,null,null,null,null,true,true,null,true,null,true,null,null,true,true,true,true,null,true,true,true,true,true,true,null,true,null,null,null,null,null,null,null,true,true,null,null,null,null,null,true,null,null,null,null,null,null,true,true,null,true,null,null,null,null,null,true,null,true,null,null,true,null,true,null,true,true,true,true,true,true,null,true,true,null,true,true,null,null,true,true,null,true,null,null,true,null,null,null,null,null,null,null,null,true,true,true,true,true,true,true,true,true,true,null,true,null,true,true,true,true,true,true,true,true,true,true,true,null,null,true,true,true,true,true,true,true,null,true,true,true,true,null,null,null,true,null,null,null,null,null,null,true,null,true,true,null,null,true,null,true,null,null,true,true,null,true,true,true,true,true,true,true,true,true,true,null,null,null,null,null,null,null,null,null,null,true,null,null,null,null,null,null,null,true,null,null,null,null,true,null,null,null,null,null,null,null,null,true,null,true,null,true,null,true,true,null,null,true,null,true,null,true,null,true,null,null,true,true,null,null,null,true,null,null,null,null,null,true,true,null,null,null,null,true,null,null,null,null,true,true,true,true,null,true,null,true,null,true,true,true,null,true,true,null,true,true,true,true,true,true,null,true,true,true,true,true,true,true,null,null,true,null,true,true,true,true,true,true,null,null,true,true,null,null,true,true,null,null,true,true,true,true,true,true,true,true,true,true,true,null,true,true,true,true,true,true,true,true,true,null,true,null,null,true,true,true,null,null,null,null,true,true,null,null,true,null,null,null,null,null,true,true,null,true,null,null,null,null,true,true,null,true,true,null,null,null,null,null,true,true,true,true,null,true,null,null,null,true,true,null,true,null,null,true,null,null,null,null,null,true,null,null,null,null,null,null,null,null,null,null,null,null,true,null,null,null,true,null,true,true,true,null,true,true,true,null,true,true,true,true,true,null,null,true,true,true,true,null,null,true,true,null,null,null,true,true,true,true,null,null,true,null,null,null,true,true,true,null,null,null,true,null,true,null,null,true,true,true,null,true,null,true,true,true,true,true,true,true,true,true,true,true,true,null,true,true,null,true,null,null,null,null,null,null,null,null,true,true,null,true,null,null,null,null,null,null,true,null,true,null,null,null,null,true,true,null,null,true,true,true,null,true,true,true,null,true,null,null,true,true,null,null,true,true,true,null,null,null,null,true,null,true,null,null,null,true,null,null,null,null,null,null,null,true,true,null,null,true,null,null,true,null,true,null,true,null,null,true,null,null,null,null,true,true,null,null,null,null,true,true,true,null,true,null,null,null,true,null,true,null,null,null,null,null,true,null,null,true,null,null,true,true,null,null,null,true,true,true,true,true,null,null,true,true,true,null,null,true,true,true,true,true,true,null,null,null,true,true,null,null,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,null,true,null,true,null,true,true,null,null,null,true,true,true,true,true,true,null,true,true,true,true,null,true,true,true,true,true,true,null,true,true,null,true,null,null,true,true,null,true,true,null,true,null,true,true,true,true,true,null,true,null,null,null,true,null,true,null,null,null,null,null,true,null,null,true,true,null,true,null,null,true,null,null,true,null,true,true,null,true,true,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,true,true,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,true,null,true,null,null,null,null,true,true,true,true,null,null,true,null,null,true,null,null,true,null,null,true,null,true,null,null,true,true,true,true,true,true,true,true,true,true,true,null,true,null,true,null,true,null,true,null,true,null,true,null,true,null,null,null,true,null,true,null,true,null,true,null,true,null,true,null,true,null,true,null,null,true,null,null,true,null,null,null,true,null,null,null,true,true,null,null,true,null,true,null,true,true,true,true,true,null,null,null,null,null,null,null,null,null,null,null,null,null,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,null,true,true,true,true,true,true,true,true,true,true,true,null,true,true,true,true,null,true,true,true,null,null,null,true,true,true,true,true,true,true,true,true,true,true,true,true,true,null,true,null,true,null,true,null,true,null,true,null,true,null,true,null,true,null,true,null,true,null,true,null,true,null,true,null,true,null,true,null,true,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,true,true,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null],
+          minuteur_en_secondes: 80,
+          couleur_des_murs: "rgb(150, 90, 40)", // rouge, vert, bleu (0-255)
+          image_de_fond: "fond8.gif", // l'image doit être placée dans le dossier images/backgrounds
+          musique: "niveau7.mp3", // la musique doit être placée dans le dossier sounds
+        },
+        { // Niveau 8
+          labyrinthe: [10,10,null,null,null,null,true,null,null,null,null,null,null,null,true,null,null,true,null,true,null,true,true,true,true,true,true,true,true,true,null,null,null,null,null,null,null,null,null,null,true,true,true,true,true,true,true,true,true,null,null,null,null,null,null,null,null,null,null,true,true,true,true,true,true,true,true,true,null,null,null,null,null,null,null,null,null,null,true,true,true,true,true,true,true,true,true,null,null,null,null,null,null,null,null,null,null,true,true,true,true,true,true,true,true,true,null,null,null,null,null,null,null,null,null,null,true,true,true,true,true,true,true,true,true,null,null,null,null,null,null,null,null,null,null,true,true,true,true,true,true,true,true,true,null,null,true,null,true,true,null,true,null,null,true,null,null,null,null,null,null,null,true,null,true,true,true,true,true,true,true,true,null,null,null,null,null,true,null,null,null,null],
+          minuteur_en_secondes: 20,
+          couleur_des_murs: "rgb(30, 30, 30)", // rouge, vert, bleu (0-255)
+          image_de_fond: "fond9.gif", // l'image doit être placée dans le dossier images/backgrounds
+          musique: "niveau8.mp3", // la musique doit être placée dans le dossier sounds
+        },
       ];
-      let labyrinthe_en_cours = niveaux[0].labyrinthe;
-      const grid_pos = [0, 0];
-      const grid_size = 30;
-      const border_size = 4;
-      const margin = 5;
+      const maze_position = [0, 0]; // position du labyrinthe (horizontal, vertical)
+      const grid_size = 30; // taille des cases
+      const border_size = 4; // taille des bordures
+      const margin = 5; // marge autour du labyrinthe
 
-      function charger_le_jeu (niveau) {
-        // vérifier que le niveau existe
-        const ce_niveau = niveaux[niveau-1];
-        if(!ce_niveau) {
+
+      // au démarrage :
+      function charger_les_images_et_musiques () {
+        const images = [];
+        const musiques = ["sounds/succes.mp3", "sounds/echec.mp3", "sounds/musics/menu.mp3"];
+        for(const niveau of niveaux) {
+          if(niveau?.image_de_fond) images.push("images/backgrounds/"+niveau.image_de_fond);
+          if(niveau?.musique) musiques.push("sounds/musics/"+niveau.musique);
+        }
+        let progression = 0;
+        const total = images.length + musiques.length;
+        const loaded_handler = function () {
+          progression++;
+          console.log("loading "+progression+"/"+total);
+          document.getElementById("progressbar").width = Math.round(progression / total * 100)+"%";
+          if(progression == total) {
+            document.getElementById("chargement").style.display = "none";
+            document.getElementById("bouton_demarrer").style.display = "block";
+          }
+        }
+        for(const image of images) {
+          const el = new Image();
+          el.onload = el.onerror = loaded_handler;
+          el.src = image;
+        }
+        for(const musique of musiques) {
+          const el = new Audio();
+          el.oncanplaythrough = el.onerror = loaded_handler;
+          el.preload = 'auto';
+          el.src = musique;
+        }
+      }
+      afficher_la_page("chargement");
+      document.body.onload = charger_les_images_et_musiques;
+
+
+      function demarrer_le_niveau (numero_du_niveau, verifier_si_autorise) {
+        const ce_niveau = niveaux[numero_du_niveau];
+        if(!ce_niveau) { // vérifier que le niveau existe
           alert("Ce niveau n'existe pas !");
           return;
         }
 
+        if(verifier_si_autorise) { // vérifier si le niveau est autorisé
+          if(numero_du_niveau > niveau_autorise) {
+            alert("Ce niveau n'a pas encore été débloqué !");
+            return;
+          }
+        }
+
+        // charger le fond d'écran
+        document.getElementById("page_jeu").style.backgroundImage = ce_niveau.image_de_fond ? "url(images/backgrounds/"+ce_niveau.image_de_fond+")" : "";
+
         // dessiner le labyrinthe
-        labyrinthe_en_cours = ce_niveau.labyrinthe;
-        dessiner_le_labyrinthe(ce_niveau.couleur_des_murs);
+        dessiner_le_labyrinthe(numero_du_niveau);
 
         // initialiser la position du joueur à l'entrée du labyrinthe
-        const entrée = ce_niveau.labyrinthe.findIndex(mur => mur === true); // trouver le premier mur ouvert
-        grid_pos[0] = -(entrée - 2) * grid_size - margin + border_size/2;
-        grid_pos[1] = 100;
+        const entrée = ce_niveau.labyrinthe.findIndex(mur => mur === true) - 2; // trouver le premier mur ouvert
+        maze_position[0] = -(margin + (entrée + 0.5) * grid_size); // x (horizontal)
+        maze_position[1] = 110 - margin; // y (vertical)
         
-        // animation de démarrage (ready?, 3, 2, 1)
-        masque_noir.style.opacity = 1;
-        masque_noir.innerText = "Ready ?";
-        setTimeout(() => afficher_la_page("jeu"), 1000);
-        setTimeout(() => masque_noir.innerText = "3", 1000);
-        setTimeout(() => masque_noir.innerText = "2", 2000);
-        setTimeout(() => masque_noir.innerText = "1", 3000);
+        // animation de démarrage (prêt?, 3, 2, 1)
+        afficher_la_page("decompte");
+        page_decompte.innerText = "Prêt ?";
+        setTimeout(() => { page_decompte.innerText = "3"; jouer_la_musique("sounds/beep.mp3", false); }, 1000);
+        setTimeout(() => { page_decompte.innerText = "2"; jouer_la_musique("sounds/beep.mp3", false);}, 2000);
+        setTimeout(() => { page_decompte.innerText = "1"; jouer_la_musique("sounds/beep.mp3", false);}, 3000);
         
-        // animation vers la page jeu
-        setTimeout(() => masque_noir.style.opacity = 0, 4000);
-        setTimeout(() => masque_noir.innerText = "", 4200);
-
+        // après le décompte, aller à la page jeu, démarrer le jeu et démarrer le minuteur
+        setTimeout(() => {
+          afficher_la_page("jeu");
+          jouer_la_musique(ce_niveau.musique ? "sounds/musics/"+ce_niveau.musique : false, true);
+          document.getElementById("niveau").innerText = "Niveau "+numero_du_niveau;
+          niveau_en_cours = prochain_niveau = numero_du_niveau;
+          minuteur_en_cours = ce_niveau.minuteur_en_secondes + 1;
+          updateTimer();
+        }, 4000);
       }
-      
 
-      function dessiner_le_labyrinthe (couleur_des_murs) {
-        const largeur = labyrinthe_en_cours[0];
-        const hauteur = labyrinthe_en_cours[1];
-        const ctx = grid.getContext("2d");
-        grid.width = grid_size*(largeur-1) + 2*margin;
-        grid.height = grid_size*(hauteur-1) + 2*margin;
-        ctx.clearRect(0, 0, grid.width, grid.height);
-        ctx.strokeStyle = couleur_des_murs || "white";
+
+      function dessiner_le_labyrinthe (niveau) {
+        if(!niveaux[niveau]) return;
+        const largeur = niveaux[niveau].labyrinthe[0];
+        const hauteur = niveaux[niveau].labyrinthe[1];
+        const maze = document.getElementById("maze");
+        const ctx = maze.getContext("2d");
+        maze.width = grid_size*(largeur-1) + 2*margin;
+        maze.height = grid_size*(hauteur-1) + 2*margin;
+        ctx.clearRect(0, 0, maze.width, maze.height);
+        ctx.strokeStyle = niveaux[niveau].couleur_des_murs || "white";
         ctx.lineWidth = border_size;
         for(let i = 0; i < largeur; i++) {
           for(let j = 0; j < hauteur; j++) {
@@ -186,7 +461,7 @@
             // barre horizontale
             if(i < largeur - 1) {
               const a = 2 + (largeur*2 - 1) * j + i;
-              if(!labyrinthe_en_cours[a]) {
+              if(!niveaux[niveau].labyrinthe[a]) {
                 ctx.beginPath();
                 ctx.moveTo(x, y);
                 ctx.lineTo(x + grid_size, y);
@@ -196,7 +471,7 @@
             // barre verticale
             if(j < hauteur - 1) {
               const b = 1 + (largeur*2 - 1) * j + i + largeur;
-              if(!labyrinthe_en_cours[b]) {
+              if(!niveaux[niveau].labyrinthe[b]) {
                 ctx.beginPath();
                 ctx.moveTo(x, y);
                 ctx.lineTo(x, y + grid_size);
@@ -206,6 +481,7 @@
           }
         }
       }
+
 
       // ====== Moteur de jeu (animation du sprite + déplacement du labyrinthe) ======
       let currentSpriteFrame = 0;
@@ -220,71 +496,98 @@
       };
 
       function updateSprite() {
+        if(!niveau_en_cours) return;
         currentSpriteFrame = (currentSpriteFrame + 1) % sprite_offsetX[currentDirection].length;
         const x = sprite_offsetX[currentDirection][currentSpriteFrame];
-        sprite.style.backgroundPosition = `-${x}px 0`;
+        document.getElementById("sprite").style.backgroundPosition = `-${x}px 0`;
       }
       setInterval(updateSprite, 70);
 
       function updateGridPosition() {
-        const x_pos = (grid_size/2-(grid_pos[0]+margin-border_size/2));
-        const y_pos = (100+grid_size-(grid_pos[1]+margin-border_size/2));
+        if(!niveau_en_cours) return;
+        const x_pos = -maze_position[0]-margin;
+        const y_pos = 135-maze_position[1]-margin;
         const i = Math.floor(x_pos/grid_size);
         const j = Math.floor(y_pos/grid_size);
-        const largeur = labyrinthe_en_cours[0];
+        const largeur = niveaux[niveau_en_cours].labyrinthe[0];
+        const hauteur = niveaux[niveau_en_cours].labyrinthe[1];
+        // adresses des murs autour de la case en cours:
         const a = 2 + (largeur*2 - 1) * j + i;
         const b = 1 + (largeur*2 - 1) * j + i + largeur;
         const c = 2 + (largeur*2 - 1) * (j + 1) + i;
         const d = 1 + (largeur*2 - 1) * j + (i + 1) + largeur;
         if(wantedDirection == "left") {
-          if(-grid_pos[0] > margin) { // interdire de sortir du labyrinthe par la gauche
-            if((x_pos % grid_size) > 10 || labyrinthe_en_cours[b]) { // interdire de franchir le mur de gauche
-              currentDirection = "left";
-              grid_pos[0] += 2;
-            }
-          } else currentDirection = "idle";
+          if((x_pos % grid_size) > 10 || niveaux[niveau_en_cours].labyrinthe[b]) { // interdire de franchir le mur de gauche
+            currentDirection = "left";
+            maze_position[0] += 2;
+          }
         }
         else if(wantedDirection == "right") {
-          if(-grid_pos[0] < (largeur - 2)*grid_size + margin) { // interdire de sortir du labyrinthe par la droite
-            if((x_pos % grid_size) < (grid_size - 10) || labyrinthe_en_cours[d]) { // interdire de franchir le mur de droite
-              currentDirection = "right";
-              grid_pos[0] -= 2;
-            }
-          } else currentDirection = "idle";
+          if((x_pos % grid_size) < (grid_size - 10) || niveaux[niveau_en_cours].labyrinthe[d]) { // interdire de franchir le mur de droite
+            currentDirection = "right";
+            maze_position[0] -= 2;
+          }
         }
         else if(wantedDirection == "up") {
-          if(grid_pos[1] < 110) { // interdire de sortir du labyrinthe par le haut
-            if((y_pos % grid_size) > 10 || labyrinthe_en_cours[a]) { // interdire de franchir le mur du haut
+          if(maze_position[1] < 110) { // interdire de sortir du labyrinthe par le haut
+            if((y_pos % grid_size) > 15 || niveaux[niveau_en_cours].labyrinthe[a]) { // interdire de franchir le mur du haut
               currentDirection = "up";
-              grid_pos[1] += 2;
+              maze_position[1] += 2;
             }
           } else currentDirection = "idle";
         }
         else if(wantedDirection == "down") {
-          if((y_pos % grid_size) < (grid_size - 5) || labyrinthe_en_cours[c]) { // interdire de franchir le mur du bas
+          if((y_pos % grid_size) < (grid_size - 5) || niveaux[niveau_en_cours].labyrinthe[c]) { // interdire de franchir le mur du bas
             currentDirection = "down";
-            grid_pos[1] -= 2;
+            maze_position[1] -= 2;
           }
         }
         else currentDirection = "idle";
-        grid.style.transform = "translate(" + grid_pos[0] + "px, " + grid_pos[1] + "px)";
+        document.getElementById("maze").style.transform = "translate("+maze_position[0]+"px, "+maze_position[1]+"px)";
+
+        // si le joueur s'est déplacé en dessous de la dernière ligne horizontale du labyrinthe, on considère qu'il a terminé le niveau
+        if(y_pos > (hauteur-1)*grid_size) {
+          if(niveau_en_cours + 1 < niveaux.length) {
+            prochain_niveau = niveau_en_cours + 1;
+            if(niveau_autorise < prochain_niveau) niveau_autorise = prochain_niveau;
+            afficher_la_page("gagne");
+          } else {
+            afficher_la_page("fini");
+          }
+        }
       }
       setInterval(updateGridPosition, 20);
 
+      function updateTimer() {
+        if(!niveau_en_cours) return;
+        if(minuteur_en_cours > 0) {
+          minuteur_en_cours--;
+          document.getElementById("timer").innerText = Math.floor(minuteur_en_cours/60).toString().padStart(2, '0')+":"+(minuteur_en_cours % 60).toString().padStart(2, '0');
+          if(minuteur_en_cours <= 0) {
+            afficher_la_page("perdu");
+          }
+        }
+      }
+      setInterval(updateTimer, 1000);
+
       // Key handling
+      let nb_keys_pressed = 0;
       document.addEventListener("keydown", (e) => {
         if (e.repeat) return;
+        nb_keys_pressed++;
         if (e.key === "ArrowLeft") wantedDirection = "left";
         else if (e.key === "ArrowRight") wantedDirection = "right";
         else if (e.key === "ArrowUp") wantedDirection = "up";
         else if (e.key === "ArrowDown") wantedDirection = "down";
       });
-      document.addEventListener("keyup", (e) => { wantedDirection = "idle"; });
+      document.addEventListener("keyup", (e) => { nb_keys_pressed--; if(!nb_keys_pressed) wantedDirection = "idle"; });
 
       // Joystick handling
+      const joystick = document.getElementById("joystick");
       function joystick_handler(e) {
-        let x, y;
+        if (!e.buttons && !e.touches) return; // only handle if mouse is down or touch is active
         const rect = joystick.getBoundingClientRect();
+        let x, y;
         if (e.touches && e.touches.length > 0) {
           x = e.touches[0].clientX - rect.left;
           y = e.touches[0].clientY - rect.top;
@@ -305,8 +608,10 @@
       }
       joystick.addEventListener("touchstart", joystick_handler);
       joystick.addEventListener("touchmove", joystick_handler);
-      joystick.addEventListener("mousedown", joystick_handler); // Optional: support mouse too
+      joystick.addEventListener("mousedown", joystick_handler);
+      joystick.addEventListener("mousemove", joystick_handler);
       document.addEventListener("mouseup", (e) => { wantedDirection = "idle"; });
+      document.addEventListener("touchend", (e) => { wantedDirection = "idle"; });
     </script>
 
   </body>
