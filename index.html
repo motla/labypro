@@ -246,6 +246,7 @@
 
       // Fonctions :
       function afficher_la_page (page) {
+        a_ctx.resume();
         if(!pages[page]) {
           alert("Cette page n'existe pas !");
           return;
