@@ -266,7 +266,7 @@
       }
 
       function jouer_la_musique(file, loop) { // la musique doit être préchargée
-        if (musique_en_cours.file == file) return; // si on demande de jouer le même fichier, on ignore
+        if (musique_en_cours.file == file && loop) return; // si on demande de jouer le même fichier, on ignore
         if (musique_en_cours.node) { // arrêter la musique en cours
           musique_en_cours.node.stop();
           musique_en_cours.node = null;  
