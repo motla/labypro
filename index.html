@@ -105,7 +105,6 @@
         <div style="margin-top: 20px"><label style="display: flex; align-items: center; gap: 5px"><input type="radio" name="perso" value="jeanne" onchange="if(this.checked) selectionner_perso('jeanne')" style="width: 20px; height: 20px"><div style="display: inline-block; width: 35px; height: 35px; background-image: url(images/sprites/jeanne.png)"></div>Jeanne</label></div>
         <div style="margin-top: 20px"><label style="display: flex; align-items: center; gap: 5px"><input type="radio" name="perso" value="lolo" onchange="if(this.checked) selectionner_perso('lolo')" style="width: 20px; height: 20px"><div style="display: inline-block; width: 35px; height: 35px; background-image: url(images/sprites/lolo.png)"></div>Lolo</label></div>
         <div style="margin-top: 20px"><label style="display: flex; align-items: center; gap: 5px"><input type="radio" name="perso" value="jack" disabled style="width: 20px; height: 20px"><img src="images/cadenas.png" width="35" height="35">Jack</label></div>
-        <div style="margin-top: 20px"><label style="display: flex; align-items: center; gap: 5px"><input type="radio" name="perso" value="pedro" disabled style="width: 20px; height: 20px"><img src="images/cadenas.png" width="35" height="35">Pedro</label></div>
         <div style="margin-top: 20px"><label style="display: flex; align-items: center; gap: 5px"><input type="radio" name="perso" value="davi" disabled style="width: 20px; height: 20px"><img src="images/cadenas.png" width="35" height="35">Davi</label></div>
         <div style="margin-top: 20px"><label style="display: flex; align-items: center; gap: 5px"><input type="radio" name="perso" value="kes" disabled style="width: 20px; height: 20px"><img src="images/cadenas.png" width="35" height="35">Kês</label></div>
         <div style="margin-top: 20px"><label style="display: flex; align-items: center; gap: 5px"><input type="radio" name="perso" value="abcxyz" disabled style="width: 20px; height: 20px"><img src="images/cadenas.png" width="35" height="35">Abcxyz</label></div>
@@ -230,7 +229,7 @@
       let prochain_niveau = 1;
       let niveau_autorise = 1; // niveau autorisé
       let minuteur_en_cours = 0; // minuteur du jeu
-      let audio_en_cours = null;
+      let musique_en_cours = { file: null, node: null };
       const pages = {
         chargement: document.getElementById("page_chargement"),
         menu: document.getElementById("page_menu"),
@@ -243,6 +242,7 @@
         gagne: document.getElementById("page_gagne"),
         fini: document.getElementById("page_fini"),
       }
+      const a_ctx = new (AudioContext || webkitAudioContext)();
 
       // Fonctions :
       function afficher_la_page (page) {
@@ -264,28 +264,22 @@
         else if (page === "gagne" || page === "fini") jouer_la_musique("sounds/succes.mp3");
       }
 
-      function jouer_la_musique(file, loop) {
-        if (audio_en_cours && audio_en_cours?.src == file) return; // si on demande de jouer le même fichier, on ignore
-        if (audio_en_cours) {
-          audio_en_cours.pause();
-          audio_en_cours.removeEventListener('timeupdate', audio_en_cours._seamlessLoopHandler || (()=>{}));
+      function jouer_la_musique(file, loop) { // la musique doit être préchargée
+        if (musique_en_cours.file == file) return; // si on demande de jouer le même fichier, on ignore
+        if (musique_en_cours.node) { // arrêter la musique en cours
+          musique_en_cours.node.stop();
+          musique_en_cours.node = null;  
         }
-        if (!file) { audio_en_cours = null; return; }
-        audio_en_cours = new Audio(file);
-        audio_en_cours.volume = 0.8;
-        if (loop) {
-          // Use a small offset to avoid gaps
-          const loopOffset = 0.1;
-          const handler = function() {
-            if (audio_en_cours.duration - audio_en_cours.currentTime < loopOffset) {
-              audio_en_cours.currentTime = 0;
-              audio_en_cours.play();
-            }
-          };
-          audio_en_cours._seamlessLoopHandler = handler;
-          audio_en_cours.addEventListener('timeupdate', handler);
+        if (!file || !music_buffers[file]) {
+          musique_en_cours.file = null;
+          return;
         }
-        audio_en_cours.play();
+        musique_en_cours.file = file;
+        musique_en_cours.node = a_ctx.createBufferSource();
+        musique_en_cours.node.buffer = music_buffers[file];
+        musique_en_cours.node.connect(a_ctx.destination);
+        musique_en_cours.node.loop = loop;
+        musique_en_cours.node.start();
       }
 
       function choisir_pseudo () {
@@ -373,12 +367,13 @@
 
 
       // au démarrage :
+      const music_buffers = {};
       function charger_les_images_et_musiques () {
         const images = [];
-        const musiques = [];//"sounds/succes.mp3", "sounds/echec.mp3", "sounds/musics/menu.mp3"];
+        const musiques = ["sounds/beep.mp3", "sounds/succes.mp3", "sounds/echec.mp3", "sounds/musics/menu.mp3"];
         for(const niveau of niveaux) {
           if(niveau?.image_de_fond) images.push("images/backgrounds/"+niveau.image_de_fond);
-          //if(niveau?.musique) musiques.push("sounds/musics/"+niveau.musique);
+          if(niveau?.musique) musiques.push("sounds/musics/"+niveau.musique);
         }
         let progression = 0;
         const total = images.length + musiques.length;
@@ -397,10 +392,13 @@
           el.src = image;
         }
         for(const musique of musiques) {
-          const el = new Audio();
-          el.oncanplaythrough = el.onerror = loaded_handler;
-          el.preload = 'auto';
-          el.src = musique;
+          fetch(musique, {mode: "cors"}).then(resp => resp.arrayBuffer()).then(buffer => a_ctx.decodeAudioData(buffer, (a_buffer) => {
+            music_buffers[musique] = a_buffer;
+            loaded_handler();
+          })).catch((e) => {
+            console.error(e);
+            document.getElementById("chargement").innerText = "Erreur: un fichier audio n'a pas pu être chargé. Vérifier que le site est lancé à partir d'un serveur web";
+          });
         }
       }
       afficher_la_page("chargement");
